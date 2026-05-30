@@ -20,6 +20,6 @@
     - name: Fetch kubeconfig to control VM
       fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: ansible/kubeconfig/k3s-{{ inventory_hostname }}.yaml
+        dest: "{{ playbook_dir }}/../kubeconfig/{{ inventory_hostname }}.yaml"
         flat: yes
 
