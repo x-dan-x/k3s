@@ -4,6 +4,12 @@
 
   tasks:
 
+    - name: Ensure passwordless sudo for Ansible user
+      copy:
+        dest: /etc/sudoers.d/99-ansible-nopasswd
+        content: "{{ ansible_user }} ALL=(ALL) NOPASSWD:ALL"
+        mode: '0440'
+
     - name: Update apt cache
       apt:
         update_cache: yes
