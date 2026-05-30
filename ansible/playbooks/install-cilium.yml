@@ -24,7 +24,7 @@
         helm upgrade --install cilium cilium/cilium \
           --namespace kube-system \
           --kubeconfig /etc/rancher/k3s/k3s.yaml \
-          --set kubeProxyReplacement=strict \
+          --set kubeProxyReplacement=true \
           --set k8sServiceHost={{ ansible_host }} \
           --set k8sServicePort=6443 \
           --set ipam.mode=kubernetes \
