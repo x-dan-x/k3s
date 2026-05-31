@@ -5,6 +5,17 @@
 
   tasks:
 
+    - name: Ensure required kernel modules are loaded
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - br_netfilter
+        - overlay
+
+    - name: Ensure sysctl settings are applied
+      command: sysctl --system
+
     - name: Install k3s server
       shell: |
         curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--flannel-backend=none --disable-network-policy" sh -
@@ -16,6 +27,14 @@
         name: k3s
         state: started
         enabled: yes
+
+    - name: Ensure k3s data directory exists
+      file:
+        path: /var/lib/rancher
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
 
     - name: Fetch kubeconfig to control VM
       fetch:
