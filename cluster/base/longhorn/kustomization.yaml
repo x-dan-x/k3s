@@ -1,0 +1,11 @@
+resources:
+  - helmrelease.yaml
+
+configMapGenerator:
+  - name: longhorn-values
+    files:
+      - values.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+

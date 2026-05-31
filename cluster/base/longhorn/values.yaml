@@ -1,0 +1,16 @@
+defaultSettings:
+  defaultReplicaCount: 1
+  defaultDataPath: /var/lib/longhorn
+  createDefaultDiskLabeledNodes: true
+  guaranteedEngineManagerCPU: 0.1
+  guaranteedReplicaManagerCPU: 0.1
+  storageOverProvisioningPercentage: 200
+  storageMinimalAvailablePercentage: 10
+
+persistence:
+  defaultClass: true
+  defaultClassReplicaCount: 1
+
+ingress:
+  enabled: false
+
