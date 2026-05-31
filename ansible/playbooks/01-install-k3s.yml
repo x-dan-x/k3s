@@ -1,7 +1,18 @@
 ---
-- name: Install k3s server (no flannel)
+- name: Install k3s server (Cilium‑ready, version‑pinned)
   hosts: k3s_cluster
   become: yes
+  gather_facts: yes
+
+  vars:
+    k3s_version: "v1.36.1+k3s1"
+    k3s_server_args: >
+      --disable traefik
+      --flannel-backend=none
+      --disable-network-policy
+      --write-kubeconfig-mode=644
+      --node-ip={{ ansible_host }}
+      --tls-san={{ ansible_host }}
 
   tasks:
 
@@ -13,16 +24,26 @@
         - br_netfilter
         - overlay
 
-    - name: Ensure sysctl settings are applied
+    - name: Apply sysctl settings
       command: sysctl --system
+      changed_when: false
 
-    - name: Install k3s server
+    - name: Check if k3s is already installed
+      stat:
+        path: /usr/local/bin/k3s
+      register: k3s_binary
+
+    - name: Install k3s server (first control-plane node)
       shell: |
-        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--flannel-backend=none --disable-network-policy" sh -
+        curl -sfL https://get.k3s.io \
+        | INSTALL_K3S_VERSION="{{ k3s_version }}" \
+          INSTALL_K3S_EXEC="{{ k3s_server_args }}" \
+          sh -
       args:
         creates: /usr/local/bin/k3s
+      when: not k3s_binary.stat.exists
 
-    - name: Ensure k3s service is running
+    - name: Ensure k3s service is enabled and running
       systemd:
         name: k3s
         state: started
@@ -41,4 +62,18 @@
         src: /etc/rancher/k3s/k3s.yaml
         dest: "{{ playbook_dir }}/../kubeconfig/{{ inventory_hostname }}.yaml"
         flat: yes
+
+    - name: Read cluster token
+      slurp:
+        src: /var/lib/rancher/k3s/server/token
+      register: k3s_token
+
+    - name: Save cluster token to control VM
+      delegate_to: localhost
+      become: false
+      run_once: true
+      copy:
+        dest: "{{ playbook_dir }}/../../k3s-token"
+        content: "{{ k3s_token.content | b64decode }}"
+        mode: '0600'
 
