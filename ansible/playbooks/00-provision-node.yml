@@ -8,7 +8,7 @@
     - name: Ensure passwordless sudo for Ansible user
       copy:
         dest: /etc/sudoers.d/99-ansible-nopasswd
-        content: "{{ ansible_user }} ALL=(ALL) NOPASSWD:ALL"
+        content: "{{ ansible_user }} ALL=(ALL) NOPASSWD:ALL\n"
         mode: '0440'
 
     - name: Update apt cache
@@ -93,6 +93,28 @@
         regexp: '^([^#].*swap.*)$'
         replace: '# \1'
 
+    - name: Create Longhorn backup mount directory
+      file:
+        path: /mnt/backups
+        state: directory
+        mode: '0755'
+
+    - name: Mount NFS backup target
+      mount:
+        path: /mnt/backups
+        src: 192.168.10.120:/export/all/backups
+        fstype: nfs
+        opts: rw,sync,noatime,nodiratime,rsize=131072,wsize=131072
+        state: mounted
+        boot: yes
+      notify: mount all filesystems
+
+    - name: Ensure fstab ends with a newline
+      lineinfile:
+        path: /etc/fstab
+        line: ""
+        insertafter: EOF
+
     - name: Disable PCIe ASPM to prevent NIC resets
       replace:
         path: /etc/default/grub
@@ -168,3 +190,5 @@
         state: restarted
       when: "'NetworkManager.service' in ansible_facts.services | default({})"
 
+    - name: mount all filesystems
+      command: mount -a
