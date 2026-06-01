@@ -122,18 +122,18 @@
 #        replace: 'GRUB_CMDLINE_LINUX="\1 pcie_aspm=off"'
 #      notify: update grub
 
-     - name: Read current GRUB_CMDLINE_LINUX
-       command: awk -F\" '/^GRUB_CMDLINE_LINUX=/{print $2}' /etc/default/grub
-       register: grub_line
-       changed_when: false
+    - name: Read current GRUB_CMDLINE_LINUX
+      command: awk -F\" '/^GRUB_CMDLINE_LINUX=/{print $2}' /etc/default/grub
+      register: grub_line
+      changed_when: false
 
-     - name: Append pcie_aspm=off to GRUB_CMDLINE_LINUX if missing
-       lineinfile:
-         path: /etc/default/grub
-         regexp: '^GRUB_CMDLINE_LINUX='
-         line: "GRUB_CMDLINE_LINUX=\"{{ grub_line.stdout }} pcie_aspm=off\""
-       when: "'pcie_aspm=off' not in grub_line.stdout"
-       notify: update grub
+    - name: Append pcie_aspm=off to GRUB_CMDLINE_LINUX if missing
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX='
+        line: "GRUB_CMDLINE_LINUX=\"{{ grub_line.stdout }} pcie_aspm=off\""
+      when: "'pcie_aspm=off' not in grub_line.stdout"
+      notify: update grub
 
     # linux-modules-extra-* is not guaranteed to exist on Ubuntu 26 minimal kernels,
     # so we just assert the driver is present instead of forcing a package.
