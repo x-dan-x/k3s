@@ -1,16 +1,48 @@
 defaultSettings:
+  # --- Replica & scheduling behavior ---
   defaultReplicaCount: 1
+  replicaAutoBalance: disabled
+  dataLocality: disabled
+  allowVolumeCreationWithDegradedAvailability: true
+
+  # --- Disk & storage behavior ---
   defaultDataPath: /var/lib/longhorn
   createDefaultDiskLabeledNodes: true
-  guaranteedEngineManagerCPU: 0.1
-  guaranteedReplicaManagerCPU: 0.1
   storageOverProvisioningPercentage: 200
   storageMinimalAvailablePercentage: 10
+
+  # --- Engine & performance tuning ---
+  guaranteedEngineManagerCPU: 0.1
+  guaranteedReplicaManagerCPU: 0.1
+  concurrentAutomaticEngineUpgradePerNodeLimit: 1
+  concurrentReplicaRebuildPerNodeLimit: 1
+  orphanAutoDeletion: true
+  staleReplicaTimeout: 30
+
+  # --- Snapshot & backup behavior ---
+  snapshotMaxCount: 250
+  snapshotDataIntegrity: disabled
+  backupCompressionMethod: lz4
+
+  # --- Backup target (NFS) ---
+  backupTarget: "nfs://192.168.10.120:/export/all/backups"
+  backupTargetCredentialSecret: ""
+
+  # --- V2 engine (disabled until migration plan) ---
+  v2DataEngine: false
 
 persistence:
   defaultClass: true
   defaultClassReplicaCount: 1
+  reclaimPolicy: Delete
 
 ingress:
   enabled: false
+
+metrics:
+  serviceMonitor:
+    enabled: false
+
+csi:
+  kubeletRootDir: /var/lib/kubelet
 
