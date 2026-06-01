@@ -1,5 +1,5 @@
 ---
-- name: Install k3s server (Cilium‑ready, version‑pinned)
+- name: Install k3s server or agent (Cilium‑ready, version‑pinned)
   hosts: k3s_cluster
   become: yes
   gather_facts: yes
@@ -28,21 +28,51 @@
       command: sysctl --system
       changed_when: false
 
+    # ---------------------------------------------------------
+    # REBUILD / EXISTING NODE DETECTION
+    # ---------------------------------------------------------
     - name: Check if k3s is already installed
       stat:
-        path: /usr/local/bin/k3s
-      register: k3s_binary
+        path: /etc/rancher/k3s/k3s.yaml
+      register: k3s_installed
 
-    - name: Install k3s server (first control-plane node)
+    - name: Skip install on nodes where k3s already exists
+      debug:
+        msg: "k3s already installed on {{ inventory_hostname }}, skipping install"
+      when: k3s_installed.stat.exists
+
+    # ---------------------------------------------------------
+    # SERVER INSTALL (all nodes are control-plane)
+    # ---------------------------------------------------------
+    - name: Install k3s server (cluster-init on first node)
       shell: |
         curl -sfL https://get.k3s.io \
         | INSTALL_K3S_VERSION="{{ k3s_version }}" \
           INSTALL_K3S_EXEC="{{ k3s_server_args }}" \
-          sh -
+          sh -s - server --cluster-init
       args:
         creates: /usr/local/bin/k3s
-      when: not k3s_binary.stat.exists
+      when:
+        - not k3s_installed.stat.exists
+        - inventory_hostname == groups['k3s_server'][0]
 
+    - name: Install k3s server (join existing HA cluster)
+      shell: |
+        curl -sfL https://get.k3s.io \
+        | INSTALL_K3S_VERSION="{{ k3s_version }}" \
+          INSTALL_K3S_EXEC="{{ k3s_server_args }}" \
+          K3S_URL="https://{{ hostvars[groups['k3s_server'][0]].ansible_host }}:6443" \
+          K3S_TOKEN="{{ lookup('file', playbook_dir + '/../../k3s-token') }}" \
+          sh -s - server
+      args:
+        creates: /usr/local/bin/k3s
+      when:
+        - not k3s_installed.stat.exists
+        - inventory_hostname != groups['k3s_server'][0]
+
+    # ---------------------------------------------------------
+    # POST-INSTALL TASKS
+    # ---------------------------------------------------------
     - name: Ensure k3s service is enabled and running
       systemd:
         name: k3s
@@ -57,16 +87,45 @@
         group: root
         mode: '0755'
 
+    # ---------------------------------------------------------
+    # NODE LABELS (all nodes are control-plane + worker)
+    # ---------------------------------------------------------
+    - name: Label node as control-plane
+      delegate_to: localhost
+      shell: |
+        kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/control-plane=true --overwrite
+
+    - name: Label node as worker
+      delegate_to: localhost
+      shell: |
+        kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/worker=true --overwrite
+
+    - name: Label node for Longhorn default disk creation
+      delegate_to: localhost
+      shell: |
+        kubectl label node {{ inventory_hostname }} node.longhorn.io/create-default-disk=true --overwrite
+
+    - name: Label GPU nodes (if GPU detected)
+      delegate_to: localhost
+      shell: |
+        kubectl label node {{ inventory_hostname }} node.kubernetes.io/gpu=true --overwrite
+      when: "'/dev/dri' in ansible_facts.devices"
+
+    # ---------------------------------------------------------
+    # TOKEN + KUBECONFIG (server 1 only)
+    # ---------------------------------------------------------
     - name: Fetch kubeconfig to control VM
       fetch:
         src: /etc/rancher/k3s/k3s.yaml
         dest: "{{ playbook_dir }}/../kubeconfig/{{ inventory_hostname }}.yaml"
         flat: yes
+      when: inventory_hostname == groups['k3s_server'][0]
 
     - name: Read cluster token
       slurp:
         src: /var/lib/rancher/k3s/server/token
       register: k3s_token
+      when: inventory_hostname == groups['k3s_server'][0]
 
     - name: Save cluster token to control VM
       delegate_to: localhost
@@ -76,4 +135,5 @@
         dest: "{{ playbook_dir }}/../../k3s-token"
         content: "{{ k3s_token.content | b64decode }}"
         mode: '0600'
+      when: inventory_hostname == groups['k3s_server'][0]
 

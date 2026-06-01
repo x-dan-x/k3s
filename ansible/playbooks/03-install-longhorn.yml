@@ -1,46 +1,5 @@
 ---
-# PART 1 — Host preparation (runs on k3s nodes)
-- name: Prepare nodes for Longhorn (Ubuntu 26 + k3s 1.36)
-  hosts: k3s_cluster
-  become: yes
-
-  tasks:
-    - name: Install required Longhorn host packages
-      apt:
-        name:
-          - open-iscsi
-          - nfs-common
-          - jq
-          - bash
-          - util-linux
-          - cryptsetup
-          - xfsprogs
-        state: present
-        update_cache: yes
-
-    - name: Ensure required kernel modules are loaded
-      modprobe:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - iscsi_tcp
-        - dm_crypt
-        - dm_mod
-        - nvme_tcp
-
-    - name: Ensure sysctl settings for Longhorn
-      sysctl:
-        name: "{{ item.name }}"
-        value: "{{ item.value }}"
-        state: present
-        sysctl_set: yes
-        reload: yes
-      loop:
-        - { name: "fs.inotify.max_user_watches", value: "524288" }
-        - { name: "fs.inotify.max_user_instances", value: "512" }
-
-
-# PART 2 — Longhorn installation (runs on control VM)
+# Longhorn installation (runs on control VM)
 - name: Install Longhorn via Helm (GitOps-ready)
   hosts: control
   connection: local
@@ -55,11 +14,11 @@
     longhorn_values_file: "{{ playbook_dir }}/../../cluster/base/longhorn/values.yaml"
 
   tasks:
-    - name: Label all nodes for Longhorn default disk creation
-      shell: |
-        kubectl label node {{ item }} node.longhorn.io/create-default-disk=true --overwrite
-      loop: "{{ groups['k3s_cluster'] }}"
-      changed_when: false
+#    - name: Label all nodes for Longhorn default disk creation - i dont think its needed here - label is done in playbook01
+#      shell: |
+#        kubectl label node {{ item }} node.longhorn.io/create-default-disk=true --overwrite
+#      loop: "{{ groups['k3s_cluster'] }}"
+#      changed_when: false
 
     - name: Ensure Longhorn namespace exists
       kubernetes.core.k8s:
