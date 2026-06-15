@@ -1,10 +1,10 @@
 ---
-- name: Install or upgrade Cilium on k3s (Kubernetes 1.36, safe mode)
+- name: Install or upgrade Cilium on k3s (native routing, kube-proxy replacement)
   hosts: k3s_cluster
   become: yes
 
   vars:
-    cilium_version: "v1.19.3"
+    cilium_version: "v1.19.4"
     kubeconfig_path: "/etc/rancher/k3s/k3s.yaml"
 
   tasks:
@@ -16,16 +16,44 @@
         fstype: bpf
         state: mounted
 
-    - name: Ensure rp_filter is disabled (required for Cilium on Ubuntu 26)
-      sysctl:
-        name: "{{ item }}"
-        value: "0"
-        state: present
-        sysctl_set: yes
-        reload: yes
-      loop:
-        - net.ipv4.conf.all.rp_filter
-        - net.ipv4.conf.default.rp_filter
+#    - name: Disable rp_filter (required for Cilium native routing)
+#      sysctl:
+#        name: "{{ item }}"
+#        value: "0"
+#        state: present
+#        sysctl_set: yes
+#        reload: yes
+#      loop:
+#        - net.ipv4.conf.all.rp_filter
+#        - net.ipv4.conf.default.rp_filter
+
+    - name: Remove stale flannel interface directories
+      file:
+        path: "/proc/sys/net/ipv4/conf/flannel"
+        state: absent
+
+    - name: Disable rp_filter on all interfaces
+      shell: |
+        for f in /proc/sys/net/ipv4/conf/*/rp_filter; do
+          iface="${f%/rp_filter}"
+          iface="${iface##*/}"
+          sysctl -w "net.ipv4.conf.${iface//./\\.}.rp_filter=0"
+        done
+      args:
+        executable: /bin/bash
+
+    - name: Persist rp_filter=0 for all interfaces
+      copy:
+        dest: /etc/sysctl.d/99-cilium-rpfilter.conf
+        content: |
+          net.ipv4.conf.all.rp_filter = 0
+          net.ipv4.conf.default.rp_filter = 0
+          net.ipv4.conf.eth0.rp_filter = 0
+          net.ipv4.conf.lo.rp_filter = 0
+          net.ipv4.conf.*.rp_filter = 0
+
+    - name: Reload sysctl
+      command: sysctl --system
 
     - name: Check if Cilium CLI is installed
       stat:
@@ -38,45 +66,67 @@
           | tar xz -C /usr/local/bin
       when: not cilium_cli.stat.exists
 
-    - name: Check if Cilium is already installed
-      shell: cilium status --kubeconfig {{ kubeconfig_path }} --wait --timeout 5s
-      register: cilium_status
+    - name: Get Pod CIDR from Kubernetes API
+      delegate_to: localhost
+      become: false
+      environment:
+        KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/{{ groups['k3s_server'][0] }}.yaml"
+      shell: |
+        kubectl get node {{ groups['k3s_server'][0] }} -o jsonpath='{.spec.podCIDRs[0]}'
+      register: pod_cidr
+      changed_when: false
+
+    - name: Check if Cilium release exists (via Cilium CLI)
+      shell: |
+        cilium status --kubeconfig {{ kubeconfig_path }} >/dev/null 2>&1
+      register: cilium_exists
       failed_when: false
       changed_when: false
 
-    - name: Install or upgrade Cilium (safe mode for k3s + Ubuntu 26 + Intel NIC)
+    - name: Upgrade existing Cilium installation
       shell: |
-        if cilium status --kubeconfig {{ kubeconfig_path }} >/dev/null 2>&1; then
-          echo "Upgrading Cilium..."
-          cilium upgrade \
-            --version {{ cilium_version }} \
-            --kubeconfig {{ kubeconfig_path }} \
-            --reuse-values=false \
-            --set kubeProxyReplacement=false \
-            --set routingMode=tunnel \
-            --set autoDirectNodeRoutes=false \
-            --set ipv4NativeRoutingCIDR="" \
-            --set bpf.masquerade=false \
-            --set hostRouting=false \
-            --set hubble.enabled=true \
-            --set hubble.relay.enabled=true \
-            --set hubble.ui.enabled=true
-        else
-          echo "Installing Cilium..."
-          cilium install \
-            --version {{ cilium_version }} \
-            --kubeconfig {{ kubeconfig_path }} \
-            --set kubeProxyReplacement=false \
-            --set routingMode=tunnel \
-            --set autoDirectNodeRoutes=false \
-            --set ipv4NativeRoutingCIDR="" \
-            --set bpf.masquerade=false \
-            --set hostRouting=false \
-            --set hubble.enabled=true \
-            --set hubble.relay.enabled=true \
-            --set hubble.ui.enabled=true
-        fi
-      changed_when: true
+        cilium upgrade \
+          --version {{ cilium_version }} \
+          --kubeconfig {{ kubeconfig_path }} \
+          --reuse-values=false \
+          --set kubeProxyReplacement=true \
+          --set routingMode=native \
+          --set ipam.mode=kubernetes \
+          --set ipv4NativeRoutingCIDR={{ pod_cidr.stdout }} \
+          --set enableIPv4=true \
+          --set enableIPv4Masquerade=true \
+          --set enableIPMasqAgent=false \
+          --set autoDirectNodeRoutes=true \
+          --set bpf.masquerade=true \
+          --set hostRouting=true \
+          --set hubble.enabled=true \
+          --set hubble.relay.enabled=true \
+          --set hubble.ui.enabled=true
+      args:
+        executable: /bin/bash
+      when: cilium_exists.rc == 0
+
+    - name: Install Cilium (first install)
+      shell: |
+        cilium install \
+          --version {{ cilium_version }} \
+          --kubeconfig {{ kubeconfig_path }} \
+          --set kubeProxyReplacement=true \
+          --set routingMode=native \
+          --set ipam.mode=kubernetes \
+          --set ipv4NativeRoutingCIDR={{ pod_cidr.stdout }} \
+          --set enableIPv4=true \
+          --set enableIPv4Masquerade=true \
+          --set enableIPMasqAgent=false \
+          --set autoDirectNodeRoutes=true \
+          --set bpf.masquerade=true \
+          --set hostRouting=true \
+          --set hubble.enabled=true \
+          --set hubble.relay.enabled=true \
+          --set hubble.ui.enabled=true
+      args:
+        executable: /bin/bash
+      when: cilium_exists.rc != 0
 
     - name: Wait for Cilium to become ready
       shell: cilium status --kubeconfig {{ kubeconfig_path }} --wait

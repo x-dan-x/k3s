@@ -6,13 +6,16 @@
 
   vars:
     k3s_version: "v1.36.1+k3s1"
-    k3s_server_args: >
-      --disable traefik
-      --flannel-backend=none
-      --disable-network-policy
-      --write-kubeconfig-mode=644
-      --node-ip={{ ansible_host }}
-      --tls-san={{ ansible_host }}
+    k3s_server_common_args_list:
+      - "--disable traefik"
+      - "--disable flannel"
+      - "--disable servicelb"
+      - "--disable-kube-proxy"
+      - "--disable-network-policy"
+      - "--write-kubeconfig-mode=644"
+      - "--node-ip={{ ansible_host }}"
+      - "--tls-san={{ ansible_host }}"
+    k3s_server_common_args: "{{ k3s_server_common_args_list | join(' ') }}"
 
   tasks:
 
@@ -39,36 +42,36 @@
     - name: Skip install on nodes where k3s already exists
       debug:
         msg: "k3s already installed on {{ inventory_hostname }}, skipping install"
-      when: k3s_installed.stat.exists
-
+#      when: k3s_installed.stat.exists
     # ---------------------------------------------------------
     # SERVER INSTALL (all nodes are control-plane)
     # ---------------------------------------------------------
-    - name: Install k3s server (cluster-init on first node)
-      shell: |
-        curl -sfL https://get.k3s.io \
-        | INSTALL_K3S_VERSION="{{ k3s_version }}" \
-          INSTALL_K3S_EXEC="{{ k3s_server_args }}" \
-          sh -s - server --cluster-init
-      args:
-        creates: /usr/local/bin/k3s
-      when:
-        - not k3s_installed.stat.exists
-        - inventory_hostname == groups['k3s_server'][0]
 
+    # FIRST SERVER (SQLite)
+    - name: Install k3s server (first server, SQLite)
+      shell: |
+        export INSTALL_K3S_CHANNEL=none
+        export INSTALL_K3S_VERSION="{{ k3s_version }}"
+        export INSTALL_K3S_EXEC="server {{ k3s_server_common_args }}"
+        curl -sfL https://get.k3s.io -o /tmp/k3s-install.sh
+        chmod +x /tmp/k3s-install.sh
+        /tmp/k3s-install.sh
+      args:
+        executable: /bin/bash
+      when: inventory_hostname == groups['k3s_server'][0]
+
+    # JOIN SERVERS (HA control-plane)
     - name: Install k3s server (join existing HA cluster)
       shell: |
-        curl -sfL https://get.k3s.io \
-        | INSTALL_K3S_VERSION="{{ k3s_version }}" \
-          INSTALL_K3S_EXEC="{{ k3s_server_args }}" \
-          K3S_URL="https://{{ hostvars[groups['k3s_server'][0]].ansible_host }}:6443" \
-          K3S_TOKEN="{{ lookup('file', playbook_dir + '/../../k3s-token') }}" \
-          sh -s - server
+        export INSTALL_K3S_CHANNEL=none
+        export INSTALL_K3S_VERSION="{{ k3s_version }}"
+        export INSTALL_K3S_EXEC="agent --server https://{{ hostvars[groups['k3s_server'][0]].ansible_host }}:6443 --token {{ lookup('file', playbook_dir + '/../../k3s-token') }}"
+        curl -sfL https://get.k3s.io -o /tmp/k3s-install.sh
+        chmod +x /tmp/k3s-install.sh
+        /tmp/k3s-install.sh
       args:
-        creates: /usr/local/bin/k3s
-      when:
-        - not k3s_installed.stat.exists
-        - inventory_hostname != groups['k3s_server'][0]
+        executable: /bin/bash
+      when: inventory_hostname != groups['k3s_server'][0]
 
     # ---------------------------------------------------------
     # POST-INSTALL TASKS
@@ -88,30 +91,6 @@
         mode: '0755'
 
     # ---------------------------------------------------------
-    # NODE LABELS (all nodes are control-plane + worker)
-    # ---------------------------------------------------------
-    - name: Label node as control-plane
-      delegate_to: localhost
-      shell: |
-        kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/control-plane=true --overwrite
-
-    - name: Label node as worker
-      delegate_to: localhost
-      shell: |
-        kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/worker=true --overwrite
-
-    - name: Label node for Longhorn default disk creation
-      delegate_to: localhost
-      shell: |
-        kubectl label node {{ inventory_hostname }} node.longhorn.io/create-default-disk=true --overwrite
-
-    - name: Label GPU nodes (if GPU detected)
-      delegate_to: localhost
-      shell: |
-        kubectl label node {{ inventory_hostname }} node.kubernetes.io/gpu=true --overwrite
-      when: "'/dev/dri' in ansible_facts.devices"
-
-    # ---------------------------------------------------------
     # TOKEN + KUBECONFIG (server 1 only)
     # ---------------------------------------------------------
     - name: Fetch kubeconfig to control VM
@@ -119,6 +98,15 @@
         src: /etc/rancher/k3s/k3s.yaml
         dest: "{{ playbook_dir }}/../kubeconfig/{{ inventory_hostname }}.yaml"
         flat: yes
+      when: inventory_hostname == groups['k3s_server'][0]
+
+    - name: Rewrite kubeconfig server address for remote access
+      delegate_to: localhost
+      become: false
+      replace:
+        path: "{{ playbook_dir }}/../kubeconfig/{{ inventory_hostname }}.yaml"
+        regexp: '127\.0\.0\.1'
+        replace: "{{ hostvars[inventory_hostname].ansible_host }}"
       when: inventory_hostname == groups['k3s_server'][0]
 
     - name: Read cluster token
@@ -136,4 +124,53 @@
         content: "{{ k3s_token.content | b64decode }}"
         mode: '0600'
       when: inventory_hostname == groups['k3s_server'][0]
+
+    - name: Wait for node to register with API server
+      delegate_to: localhost
+      become: false
+      environment:
+        KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/{{ groups['k3s_server'][0] }}.yaml"
+      shell: |
+        for i in {1..30}; do
+          kubectl get node {{ inventory_hostname }} >/dev/null 2>&1 && exit 0
+          sleep 2
+        done
+        echo "Node {{ inventory_hostname }} did not register in time" >&2
+        exit 1
+
+    # ---------------------------------------------------------
+    # NODE LABELS (all nodes are control-plane + worker)
+    # ---------------------------------------------------------
+    - name: Label node as control-plane
+      delegate_to: localhost
+      become: false
+      environment:
+        KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/{{ groups['k3s_server'][0] }}.yaml"
+      shell: |
+        kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/control-plane=true --overwrite
+
+    - name: Label node as worker
+      delegate_to: localhost
+      become: false
+      environment:
+        KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/{{ groups['k3s_server'][0] }}.yaml"
+      shell: |
+        kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/worker=true --overwrite
+
+    - name: Label node for Longhorn default disk creation
+      delegate_to: localhost
+      become: false
+      environment:
+        KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/{{ groups['k3s_server'][0] }}.yaml"
+      shell: |
+        kubectl label node {{ inventory_hostname }} node.longhorn.io/create-default-disk=true --overwrite
+
+    - name: Label GPU nodes (if GPU detected)
+      delegate_to: localhost
+      become: false
+      environment:
+        KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/{{ groups['k3s_server'][0] }}.yaml"
+      shell: |
+        kubectl label node {{ inventory_hostname }} node.kubernetes.io/gpu=true --overwrite
+      when: "'/dev/dri' in ansible_facts.devices"
 

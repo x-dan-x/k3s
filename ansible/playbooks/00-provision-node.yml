@@ -1,10 +1,10 @@
+---
 - name: Provision Ubuntu 26.04 node
   hosts: k3s_cluster
   become: yes
   gather_facts: yes
 
   tasks:
-
     - name: Ensure passwordless sudo for Ansible user
       copy:
         dest: /etc/sudoers.d/99-ansible-nopasswd
@@ -46,10 +46,10 @@
           - util-linux
           - cryptsetup
           - xfsprogs
+          - ethtool
         state: present
-        update_cache: yes
 
-    - name: Configure Vim to disable mouse mode (restore classic paste behaviour)
+    - name: Configure Vim to disable mouse mode
       copy:
         dest: /etc/vim/vimrc.local
         content: |
@@ -57,7 +57,6 @@
           set mouse=
           " Enable system clipboard integration
           set clipboard=unnamedplus
-          " Optional: sane defaults
           set backspace=indent,eol,start
           syntax on
         owner: root
@@ -68,7 +67,8 @@
       apt:
         name:
           - intel-media-va-driver-non-free
-          - i965-va-driver-shaders
+          - intel-opencl-icd
+          - intel-gpu-tools
           - vainfo
         state: present
 
@@ -103,6 +103,9 @@
         name: "{{ item }}"
         state: present
       loop:
+        - br_netfilter
+        - overlay
+        - i915
         - iscsi_tcp
         - dm_crypt
         - dm_mod
@@ -132,20 +135,6 @@
         opts: rw,sync,noatime,nodiratime,rsize=131072,wsize=131072
         state: mounted
         boot: yes
-      notify: mount all filesystems
-
-    - name: Ensure fstab ends with a newline
-      lineinfile:
-        path: /etc/fstab
-        line: ""
-        insertafter: EOF
-
-#    - name: Disable PCIe ASPM to prevent NIC resets
-#      replace:
-#        path: /etc/default/grub
-#        regexp: 'GRUB_CMDLINE_LINUX="(.*)"'
-#        replace: 'GRUB_CMDLINE_LINUX="\1 pcie_aspm=off"'
-#      notify: update grub
 
     - name: Read current GRUB_CMDLINE_LINUX
       command: awk -F\" '/^GRUB_CMDLINE_LINUX=/{print $2}' /etc/default/grub
@@ -160,30 +149,37 @@
       when: "'pcie_aspm=off' not in grub_line.stdout"
       notify: update grub
 
-    # linux-modules-extra-* is not guaranteed to exist on Ubuntu 26 minimal kernels,
-    # so we just assert the driver is present instead of forcing a package.
     - name: Ensure igc driver is present
       command: modinfo igc
       register: igc_info
       changed_when: false
       failed_when: igc_info.rc != 0
 
-    - name: Disable NIC power saving (systemd-networkd)
+    - name: Persist ethtool ring buffer & hardware offloading disabling rules
       copy:
-        dest: /etc/systemd/network/99-disable-power-saving.link
+        dest: /etc/systemd/system/disable-nic-offload.service
         content: |
-          [Match]
-          Driver=igc
+          [Unit]
+          Description=Disable NIC hardware offloading features for Cilium
+          After=network.target
 
-          [Link]
-          WakeOnLan=off
-          PowerSave=off
+          [Service]
+          Type=oneshot
+          ExecStart=/sbin/ethtool -K eth0 tx off rx off tso off gso off
+          ExecStart=/sbin/ethtool -K ens18 tx off rx off tso off gso off
+          RemainAfterExit=yes
+
+          [Install]
+          WantedBy=multi-user.target
         owner: root
         group: root
         mode: '0644'
 
-    - name: Reload udev rules
-      command: udevadm control --reload
+    - name: Enable nic offload service
+      systemd:
+        name: disable-nic-offload.service
+        enabled: yes
+        state: started
 
     - name: Enable iSCSI Service
       systemd:
@@ -220,9 +216,5 @@
         reboot_timeout: 600
 
   handlers:
-
     - name: update grub
       command: update-grub
-
-    - name: mount all filesystems
-      command: mount -a

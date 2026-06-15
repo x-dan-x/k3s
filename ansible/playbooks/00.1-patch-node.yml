@@ -1,0 +1,53 @@
+---
+- name: Patch Ubuntu 26 for Cilium compatibility (Fix 1 & Fix 2)
+  hosts: k3s_cluster
+  become: yes
+  gather_facts: yes
+
+  tasks:
+
+    # ---------------------------------------------------------
+    # FIX 1 — Disable systemd-networkd interference
+    # ---------------------------------------------------------
+    - name: Ensure systemd-networkd override directory exists
+      file:
+        path: /etc/systemd/networkd.conf.d
+        state: directory
+        mode: '0755'
+
+    - name: Disable foreign route management (Cilium-safe)
+      copy:
+        dest: /etc/systemd/networkd.conf.d/disable-foreign-routes.conf
+        content: |
+          [Network]
+          ManageForeignRoutes=no
+          ManageForeignRoutingPolicyRules=no
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart systemd-networkd
+      systemd:
+        name: systemd-networkd
+        state: restarted
+        enabled: yes
+
+    # ---------------------------------------------------------
+    # FIX 2 — Disable netplan renderer for primary NIC
+    # ---------------------------------------------------------
+    - name: Find netplan config file
+      find:
+        paths: /etc/netplan
+        patterns: "*.yaml"
+      register: netplan_files
+
+    - name: Disable renderer for all ethernets
+      replace:
+        path: "{{ item.path }}"
+        regexp: 'renderer:\s*\w+'
+        replace: 'renderer: none'
+      loop: "{{ netplan_files.files }}"
+
+    - name: Apply netplan changes
+      command: netplan apply
+

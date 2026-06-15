@@ -7,6 +7,7 @@
 
   environment:
     K8S_AUTH_KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/config"
+    KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/k3s-3.yaml"
 
   vars:
     longhorn_namespace: longhorn-system
