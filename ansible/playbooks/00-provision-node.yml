@@ -165,8 +165,8 @@
 
           [Service]
           Type=oneshot
-          ExecStart=/sbin/ethtool -K eth0 tx off rx off tso off gso off
-          ExecStart=/sbin/ethtool -K ens18 tx off rx off tso off gso off
+          ExecStart=/bin/bash -c "if [ -d /sys/class/net/eth0 ]; then /sbin/ethtool -K eth0 tx off rx off tso off gso off; fi"
+          ExecStart=/bin/bash -c "if [ -d /sys/class/net/ens18 ]; then /sbin/ethtool -K ens18 tx off rx off tso off gso off; fi"
           RemainAfterExit=yes
 
           [Install]
@@ -209,6 +209,29 @@
     - name: Reload sysctl
       command: sysctl --system
 
+# ---------------------------------------------------------
+    # CILIUM NETWORK ENGINE PATCHES
+    # ---------------------------------------------------------
+    - name: Ensure systemd-networkd override directory exists
+      file:
+        path: /etc/systemd/networkd.conf.d
+        state: directory
+        mode: '0755'
+
+    - name: Prevent systemd-networkd from dropping Cilium eBPF routes
+      copy:
+        dest: /etc/systemd/networkd.conf.d/disable-foreign-routes.conf
+        content: |
+          [Network]
+          ManageForeignRoutes=no
+          ManageForeignRoutingPolicyRules=no
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart networkd
+
+    # (Keep your existing reboot task at the very bottom of the playbook)
+
     - name: Reboot if required
       reboot:
         msg: "Rebooting after provisioning"
@@ -218,3 +241,9 @@
   handlers:
     - name: update grub
       command: update-grub
+
+    - name: restart networkd
+      systemd:
+        name: systemd-networkd
+        state: restarted
+        enabled: yes
