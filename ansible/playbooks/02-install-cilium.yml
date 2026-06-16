@@ -1,135 +1,83 @@
 ---
-- name: Install or upgrade Cilium on k3s (native routing, kube-proxy replacement)
-  hosts: k3s_cluster
-  become: yes
+# Pre-stage the host directory dependencies across all cluster nodes
+- name: Prepare Host CNI Directories
+  hosts: k3s_server
+  become: true
+  tasks:
+    - name: Ensure standard system CNI directory exists
+      file:
+        path: /etc/cni/net.d
+        state: directory
+        mode: '0755'
+
+    - name: Symlink K3s CNI path to standard system path
+      file:
+        src: /var/lib/rancher/k3s/agent/etc/cni/net.d/05-cilium.conflist
+        dest: /etc/cni/net.d/05-cilium.conflist
+        state: link
+        force: true
+
+# Deploy the Cilium infrastructure locally from the Control VM
+- name: Deploy Cilium Network Architecture
+  hosts: control
+  connection: local
+  become: false
 
   vars:
-    cilium_version: "v1.19.4"
-    kubeconfig_path: "/etc/rancher/k3s/k3s.yaml"
+    cilium_version: "1.19.4"
+    kubeconfig_path: "~/.kube/config"
+    crd_base_url: "https://raw.githubusercontent.com/cilium/cilium/v{{ cilium_version }}/pkg/k8s/apis/cilium.io/client/crds/v2"
+    cilium_crds:
+      - ciliumnetworkpolicies
+      - ciliumclusterwidenetworkpolicies
+      - ciliumendpoints
+      - ciliumnodes
+      - ciliumidentities
+      - ciliumlocalredirectpolicies
+      - ciliumegressgatewaypolicies
+      - ciliumcidrgroups
+      - ciliumenvoyconfigs
 
   tasks:
-
-    - name: Ensure BPF filesystem is mounted
-      mount:
-        path: /sys/fs/bpf
-        src: bpffs
-        fstype: bpf
-        state: mounted
-
-#    - name: Disable rp_filter (required for Cilium native routing)
-#      sysctl:
-#        name: "{{ item }}"
-#        value: "0"
-#        state: present
-#        sysctl_set: yes
-#        reload: yes
-#      loop:
-#        - net.ipv4.conf.all.rp_filter
-#        - net.ipv4.conf.default.rp_filter
-
-    - name: Remove stale flannel interface directories
+    - name: Create local temporary directory for CRD manifests
       file:
-        path: "/proc/sys/net/ipv4/conf/flannel"
+        path: /tmp/cilium_crds
+        state: directory
+        mode: '0755'
+
+    - name: Download Cilium CRD definitions from repository
+      get_url:
+        url: "{{ crd_base_url }}/{{ item }}.yaml"
+        dest: "/tmp/cilium_crds/{{ item }}.yaml"
+        mode: '0644'
+      loop: "{{ cilium_crds }}"
+
+    - name: Apply Cilium CRDs to the K3s cluster foundation
+      shell: "kubectl apply -f /tmp/cilium_crds/{{ item }}.yaml --kubeconfig {{ kubeconfig_path }}"
+      loop: "{{ cilium_crds }}"
+
+    - name: Clean up temporary CRD directory on Control VM
+      file:
+        path: /tmp/cilium_crds
         state: absent
 
-    - name: Disable rp_filter on all interfaces
+    - name: Install or upgrade Cilium with native Ingress controller engines
       shell: |
-        for f in /proc/sys/net/ipv4/conf/*/rp_filter; do
-          iface="${f%/rp_filter}"
-          iface="${iface##*/}"
-          sysctl -w "net.ipv4.conf.${iface//./\\.}.rp_filter=0"
-        done
-      args:
-        executable: /bin/bash
-
-    - name: Persist rp_filter=0 for all interfaces
-      copy:
-        dest: /etc/sysctl.d/99-cilium-rpfilter.conf
-        content: |
-          net.ipv4.conf.all.rp_filter = 0
-          net.ipv4.conf.default.rp_filter = 0
-          net.ipv4.conf.eth0.rp_filter = 0
-          net.ipv4.conf.lo.rp_filter = 0
-          net.ipv4.conf.*.rp_filter = 0
-
-    - name: Reload sysctl
-      command: sysctl --system
-
-    - name: Check if Cilium CLI is installed
-      stat:
-        path: /usr/local/bin/cilium
-      register: cilium_cli
-
-    - name: Install Cilium CLI
-      shell: |
-        curl -L --fail https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-amd64.tar.gz \
-          | tar xz -C /usr/local/bin
-      when: not cilium_cli.stat.exists
-
-    - name: Get Pod CIDR from Kubernetes API
-      delegate_to: localhost
-      become: false
-      environment:
-        KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/{{ groups['k3s_server'][0] }}.yaml"
-      shell: |
-        kubectl get node {{ groups['k3s_server'][0] }} -o jsonpath='{.spec.podCIDRs[0]}'
-      register: pod_cidr
-      changed_when: false
-
-    - name: Check if Cilium release exists (via Cilium CLI)
-      shell: |
-        cilium status --kubeconfig {{ kubeconfig_path }} >/dev/null 2>&1
-      register: cilium_exists
-      failed_when: false
-      changed_when: false
-
-    - name: Upgrade existing Cilium installation
-      shell: |
-        cilium upgrade \
+        helm repo add cilium https://helm.cilium.io/
+        helm repo update
+        helm upgrade -i cilium cilium/cilium \
           --version {{ cilium_version }} \
-          --kubeconfig {{ kubeconfig_path }} \
-          --reuse-values=false \
-          --set kubeProxyReplacement=true \
-          --set routingMode=native \
-          --set ipam.mode=kubernetes \
-          --set ipv4NativeRoutingCIDR={{ pod_cidr.stdout }} \
-          --set enableIPv4=true \
-          --set enableIPv4Masquerade=true \
-          --set enableIPMasqAgent=false \
-          --set autoDirectNodeRoutes=true \
-          --set bpf.masquerade=true \
-          --set hostRouting=true \
-          --set hubble.enabled=true \
-          --set hubble.relay.enabled=true \
-          --set hubble.ui.enabled=true
-      args:
-        executable: /bin/bash
-      when: cilium_exists.rc == 0
-
-    - name: Install Cilium (first install)
-      shell: |
-        cilium install \
-          --version {{ cilium_version }} \
+          --namespace kube-system \
           --kubeconfig {{ kubeconfig_path }} \
           --set kubeProxyReplacement=true \
-          --set routingMode=native \
-          --set ipam.mode=kubernetes \
-          --set ipv4NativeRoutingCIDR={{ pod_cidr.stdout }} \
-          --set enableIPv4=true \
-          --set enableIPv4Masquerade=true \
-          --set enableIPMasqAgent=false \
-          --set autoDirectNodeRoutes=true \
-          --set bpf.masquerade=true \
-          --set hostRouting=true \
+          --set k8sServiceHost=127.0.0.1 \
+          --set k8sServicePort=6443 \
+          --set cni.binPath=/opt/cni/bin \
+          --set cni.confPath=/etc/cni/net.d \
+          --set ingressController.enabled=true \
+          --set ingressController.loadbalancerMode=dedicated \
           --set hubble.enabled=true \
           --set hubble.relay.enabled=true \
-          --set hubble.ui.enabled=true
-      args:
-        executable: /bin/bash
-      when: cilium_exists.rc != 0
-
-    - name: Wait for Cilium to become ready
-      shell: cilium status --kubeconfig {{ kubeconfig_path }} --wait
-      register: cilium_ready
-      changed_when: false
-
+          --set hubble.ui.enabled=true \
+          --set disableJob=true \
+          --set k3s.enabled=true
