@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Keep this to default local items
+namespace: argocd
+
+resources:
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.3/manifests/install.yaml
+  - 01-argocd-route.yaml
+
+patches:
+  # 1. Fix the insecure setting in the right configmap
+  - target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+    patch: |
+      - op: add
+        path: /data
+        value:
+          server.insecure: "true"
+
