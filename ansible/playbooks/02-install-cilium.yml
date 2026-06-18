@@ -70,14 +70,21 @@
           --namespace kube-system \
           --kubeconfig {{ kubeconfig_path }} \
           --set kubeProxyReplacement=true \
-          --set k8sServiceHost=127.0.0.1 \
+          --set k8sServiceHost=192.168.10.21 \
           --set k8sServicePort=6443 \
           --set cni.binPath=/opt/cni/bin \
           --set cni.confPath=/etc/cni/net.d \
-          --set ingressController.enabled=true \
-          --set ingressController.loadbalancerMode=dedicated \
+          --set ingressController.enabled=false \
+          --set gatewayAPI.enabled=true \
           --set hubble.enabled=true \
           --set hubble.relay.enabled=true \
           --set hubble.ui.enabled=true \
           --set disableJob=true \
-          --set k3s.enabled=true
+          --set k3s.enabled=true \
+          --set l2announcements.enabled=true \
+          --set ipam.mode=kubernetes \
+          --set bpf.masquerade=true \
+          --set bpf.hostRouting=true \
+          --set installNoConntrackIptablesRules=false \
+          --set mtu=1450 \
+          --set vlan.mtu=1450

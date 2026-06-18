@@ -1,0 +1,75 @@
+---
+- name: Automate Proxmox iGPU Passthrough Setup
+  hosts: pve_hosts
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Read current host GRUB cmdline
+      command: awk -F\" '/^GRUB_CMDLINE_LINUX_DEFAULT=/{print $2}' /etc/default/grub
+      register: pve_grub
+      changed_when: false
+
+    - name: Configure IOMMU in Proxmox GRUB
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"'
+      when: "'intel_iommu=on' not in pve_grub.stdout"
+      notify: refresh pve grub
+
+    - name: Configure VFIO kernel modules on host
+      blockinfile:
+        path: /etc/modules
+        block: |
+          vfio
+          vfio_iommu_type1
+          vfio_pci
+          vfio_virqfd
+
+    - name: Blacklist i915 driver on Proxmox host
+      copy:
+        dest: /etc/modprobe.d/pve-blacklist.conf
+        content: |
+          blacklist i915
+          blacklist amdgpu
+          blacklist radeon
+        mode: '0644'
+
+    - name: Prevent host from hijacking framebuffers
+      copy:
+        dest: /etc/modprobe.d/vfio.conf
+        content: "options vfio-pci disable_vga=1\n"
+        mode: '0644'
+
+    - name: Flush host changes
+      meta: flush_handlers
+
+    # AUTOMATED VM CORRECTION STEP
+    # This loops through your inventory variables to find which VMs live on which host,
+    # then modifies the raw Proxmox configuration file to inject the mapping.
+    - name: Inject PCI Passthrough into VM configurations
+      lineinfile:
+        path: "/etc/pve/qemu-server/{{ item.value.vmid }}.conf"
+        line: "hostpci0: 0000:00:02.0,pcie=1,rombar=0"
+        regexp: '^hostpci0:'
+        state: present
+      loop: "{{ hostvars | dict2items }}"
+      when: 
+        - item.value.pve_node is defined 
+        - item.value.pve_node == inventory_hostname
+
+    - name: Check if host needs a reboot for IOMMU activation
+      shell: cat /proc/cmdline
+      register: running_cmdline
+      changed_when: false
+
+    - name: Reboot Proxmox host if configurations are fresh
+      reboot:
+        msg: "Rebooting Proxmox host to initialize IOMMU hardware isolation mappings"
+        reboot_timeout: 600
+      when: "'intel_iommu=on' not in running_cmdline.stdout"
+
+  handlers:
+    - name: refresh pve grub
+      command: update-grub

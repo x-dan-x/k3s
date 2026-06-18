@@ -1,0 +1,17 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: unified-l2-policy
+spec:
+  # SERVICE SELECTOR IS OMITTED: This means ALL LoadBalancer services match automatically!
+  
+  # NODE SELECTOR IS EXPLICIT: This gives all 3 nodes permission to talk to your switch
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: Exists
+        
+  interfaces:
+    - "ens18" # <-- Tells Cilium which wire to send the data down
+  loadBalancerIPs: true
+  externalIPs: true

@@ -1,0 +1,14 @@
+apiVersion: cilium.io/v2
+kind: CiliumNodeConfig
+metadata:
+  name: cilium-l2-node-config
+  namespace: kube-system
+spec:
+  # This targets every node in your cluster automatically
+  nodeSelector:
+    matchExpressions:
+      - key: kubernetes.io/hostname
+        operator: Exists
+  defaults:
+    # This triggers the missing link inside the Cilium eBPF agent loop
+    enable-l2-announcements: "true"

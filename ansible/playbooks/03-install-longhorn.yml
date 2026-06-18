@@ -1,5 +1,54 @@
 ---
-# Longhorn installation (runs on control VM)
+# ==============================================================================
+# PLAY 1: Host Preparation (Runs across the K3s Node Cluster)
+# ==============================================================================
+- name: Prepare Infrastructure Nodes for Longhorn Dedicated Storage
+  hosts: k3s_server
+  become: true
+  gather_facts: true
+  vars:
+    target_disk: "/dev/sdb"
+    mount_point: "/var/lib/longhorn"
+
+  tasks:
+    - name: Ensure target mount directory exists
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create ext4 filesystem on the dedicated 400G storage disk
+      filesystem:
+        fstype: ext4
+        dev: "{{ target_disk }}"
+
+    - name: Mount and map disk into fstab for persistent boot retention
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ target_disk }}"
+        fstype: ext4
+        opts: defaults,discard
+        state: mounted
+
+    - name: Configure multipathd exclusion rule for Longhorn cluster engines
+      copy:
+        content: |
+          blacklist {
+              devnode "^longhorn[^/]*"
+          }
+        dest: /etc/multipath.conf
+        mode: '0644'
+
+    - name: Restart multipathd daemon to absorb configuration changes
+      service:
+        name: multipathd
+        state: restarted
+        enabled: true
+      ignore_errors: true  # Prevents failure if a node doesn't have multipathd running
+
+# ==============================================================================
+# PLAY 2: Orchestration (Runs locally on Control VM to interact with API)
+# ==============================================================================
 - name: Install Longhorn via Helm (GitOps-ready)
   hosts: control
   connection: local
@@ -7,7 +56,7 @@
 
   environment:
     K8S_AUTH_KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/config"
-    KUBECONFIG: "{{ playbook_dir }}/../kubeconfig/k3s-3.yaml"
+    KUBECONFIG: "{{ lookup('env','HOME') }}/.kube/config"
 
   vars:
     longhorn_namespace: longhorn-system
@@ -15,12 +64,6 @@
     longhorn_values_file: "{{ playbook_dir }}/../../cluster/base/longhorn/values.yaml"
 
   tasks:
-#    - name: Label all nodes for Longhorn default disk creation - i dont think its needed here - label is done in playbook01
-#      shell: |
-#        kubectl label node {{ item }} node.longhorn.io/create-default-disk=true --overwrite
-#      loop: "{{ groups['k3s_cluster'] }}"
-#      changed_when: false
-
     - name: Ensure Longhorn namespace exists
       kubernetes.core.k8s:
         api_version: v1
@@ -46,22 +89,9 @@
         executable: /bin/bash
       changed_when: false
 
-#    - name: Install or upgrade Longhorn via Helm
-#      kubernetes.core.helm:
-#        name: longhorn
-#        chart_ref: longhorn/longhorn
-#        release_namespace: "{{ longhorn_namespace }}"
-#        version: "{{ longhorn_version }}"
-#        values_files:
-#          - "{{ longhorn_values_file }}"
-#        state: present
-#        wait: true
-#        wait_timeout: "600s"
-
     - name: Wait for all Longhorn pods to become Ready
       shell: |
         kubectl -n {{ longhorn_namespace }} wait --for=condition=Ready pod --all --timeout=600s
       args:
         executable: /bin/bash
       changed_when: false
-

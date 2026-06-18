@@ -1,0 +1,35 @@
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: lan-dns-pool
+spec:
+  blocks:
+    - start: "192.168.10.19"
+      stop: "192.168.10.19"
+  serviceSelector:
+    matchLabels:
+      app: adguard-home # <--- Matches the service label in 07-adguard-home.yaml
+---
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: lan-ingress-pool
+spec:
+  blocks:
+    - start: "192.168.10.20"
+      stop: "192.168.10.20"
+  serviceSelector:
+    matchLabels:
+      cilium.io/ingress: "true" # Cilium auto-labels its generated Ingress services with this
+---
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: plex-dedicated-pool
+spec:
+  blocks:
+    - start: "192.168.10.18" # <--- Or whichever dedicated streaming IP you want
+      stop: "192.168.10.18"
+  serviceSelector:
+    matchLabels:
+      app.kubernetes.io/name: "plex-stream" # <--- Target label for your Plex service

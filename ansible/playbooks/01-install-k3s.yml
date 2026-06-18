@@ -15,7 +15,6 @@
       --write-kubeconfig-mode=644
       --node-ip={{ ansible_host }}
       --tls-san={{ ansible_host }}
-      --node-taint CriticalAddonsOnly=true:NoExecute
 
   tasks:
     - name: Check if k3s is already installed
@@ -87,8 +86,6 @@
           disable:
             - traefik
           write-kubeconfig-mode: "644"
-          node-taint:
-            - "CriticalAddonsOnly=true:NoExecute"
       when: inventory_hostname != groups['k3s_server'][0]
 
     - name: Install k3s server (join existing HA cluster)
