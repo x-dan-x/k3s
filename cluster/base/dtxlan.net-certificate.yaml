@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dtx-lan-wildcard
+  namespace: kube-system
+spec:
+  secretName: dtx-lan-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: "*.dtxlan.net"
+  dnsNames:
+  - "*.dtxlan.net"
+  - "dtxlan.net"
