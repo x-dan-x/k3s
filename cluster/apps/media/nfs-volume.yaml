@@ -26,7 +26,7 @@ spec:
     - timeo=600
     - retrans=2  
   nfs:
-    path: /export/all
+    path: /all
     server: 192.168.10.120
 ---
 apiVersion: v1
