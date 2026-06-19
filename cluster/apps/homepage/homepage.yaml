@@ -75,9 +75,9 @@ spec:
           - -c
           - |
             echo "Populating Git configuration to Longhorn..."
-            cp -r /tmp/git-config/* /app/config/
+            cp -r /tmp/git-config/. /app/config/
             
-            # --- FORCE PERMISSIONS SO THE CONTAINER CAN WRITE LOGS ---
+            echo "Setting write permissions..."
             chmod -R 777 /app/config
             echo "Configuration sync complete."
         volumeMounts:
