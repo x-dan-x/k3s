@@ -23,6 +23,10 @@ spec:
               capabilities:
                 add: ["NET_ADMIN"]
             hostNetwork: true
+            # Override env vars to push its config directory down into /tmp/ which is writeable
+            env:
+              - name: HOME
+                value: /tmp
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: kube-system
