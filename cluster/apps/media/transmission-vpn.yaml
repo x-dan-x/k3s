@@ -43,7 +43,7 @@ spec:
         - name: TZ
           value: "UTC"
         # --- VPN PROVIDER CONFIGURATION ---
-        - name: VPN_SERVICE_PROVIDER
+        - name: OPENVPN_PROVIDER
           value: "PIA" # e.g., PIA, NORDVPN, MULLVAD, SURFSHARK
         - name: VPN_USERNAME
           valueFrom:
