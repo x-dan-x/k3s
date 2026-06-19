@@ -19,6 +19,14 @@ data:
             icon: "adguard-home"
             href: "https://adguard.dtxlan.net"
             description: "DNS manager"
+        - Hubble:
+            icon: "hubble"
+            href: "https://hubble.dtxlan.net"
+            description: "Cluster netflows"
+        - Pangolin:
+            icon: "pangolin"
+            href: "https://pangolin.johnsonland.net"
+            description: "VPS management"
   settings.yaml: |
     title: dtxlan.net Home
     base: https://homepage.dtxlan.net
