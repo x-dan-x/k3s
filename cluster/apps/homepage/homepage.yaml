@@ -104,3 +104,16 @@ spec:
       - name: git-raw-config
         configMap:
           name: homepage-config # Read-only Git payload
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage-service
+  namespace: homepage
+spec:
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+  selector:
+    app: homepage # This connects the service straight to your deployment pods
