@@ -38,7 +38,7 @@ spec:
           value: "100"  # users
         - name: TZ
           value: "Australia/Sydney"
-        - name: SABNZBD__HOST_ALLOWLIST
+        - name: SABNZBD__HOST_WHITELIST_ENTRIES
           value: "*"  # Or use "*" to allow any local hostname
         volumeMounts:
         - name: config-storage
