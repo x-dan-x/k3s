@@ -3,6 +3,9 @@ kind: ConfigMap
 metadata:
   name: homepage-config
 data:
+  settings.yaml: |
+    title: dtxlan.net Home
+    base: https://homepage.dtxlan.net
   # Modern syntax for service declarations
   services.yaml: |
     - Cluster Management:
@@ -27,9 +30,6 @@ data:
             icon: "pangolin"
             href: "https://pangolin.johnsonland.net"
             description: "VPS management"
-  settings.yaml: |
-    title: dtxlan.net Home
-    base: https://homepage.dtxlan.net
   # Empty placeholders so the v1.x engine doesn't crash on missing files
   bookmarks.yaml: |
     []
@@ -38,10 +38,24 @@ data:
   custom.css: |
     /* Custom styles go here */
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homepage-storage
+  namespace: homepage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn # Tells K3s to dynamically request storage from Longhorn
+  resources:
+    requests:
+      storage: 2Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: homepage
+  namespace: homepage
 spec:
   replicas: 1
   selector:
@@ -52,43 +66,40 @@ spec:
       labels:
         app: homepage
     spec:
+      # --- THE SMART INIT CONTAINER ---
+      initContainers:
+      - name: init-config-sync
+        image: busybox:latest
+        command:
+          - sh
+          - -c
+          - |
+            # If the volume is blank, or if you update Git and want to force-sync changes,
+            # we copy the Git configurations over to the writeable Longhorn volume.
+            echo "Checking configuration state..."
+            cp -r /tmp/git-config/* /app/config/
+            echo "Configuration sync complete."
+        volumeMounts:
+        - name: git-raw-config
+          mountPath: /tmp/git-config
+        - name: app-storage
+          mountPath: /app/config
+      # --- THE HOMEPAGE APPLICATION ---
       containers:
       - name: homepage
-        image: ghcr.io/gethomepage/homepage:v1.13.2  # Fully modernized target
+        image: ghcr.io/gethomepage/homepage:v1.13.2
         ports:
         - containerPort: 3000
         env:
         - name: HOMEPAGE_ALLOWED_HOSTS
           value: "*"
         volumeMounts:
-        - name: config
-          mountPath: /app/config/settings.yaml
-          subPath: settings.yaml
-        - name: config
-          mountPath: /app/config/services.yaml
-          subPath: services.yaml
-        - name: config
-          mountPath: /app/config/bookmarks.yaml
-          subPath: bookmarks.yaml
-        - name: config
-          mountPath: /app/config/widgets.yaml
-          subPath: widgets.yaml
-        - name: config
-          mountPath: /app/config/custom.css
-          subPath: custom.css
+        - name: app-storage # Mounts the complete folder cleanly without complex subPath constraints
+          mountPath: /app/config
       volumes:
-      - name: config
+      - name: app-storage
+        persistentVolumeClaim:
+          claimName: homepage-storage # Backend storage tier
+      - name: git-raw-config
         configMap:
-          name: homepage-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: homepage-service
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-    targetPort: 3000
-  selector:
-    app: homepage
+          name: homepage-config # Read-only Git payload
