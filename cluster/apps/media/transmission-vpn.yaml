@@ -41,7 +41,7 @@ spec:
         - name: PGID
           value: "100"  # Maps to the 'users' group on OMV
         - name: TZ
-          value: "UTC"
+          value: "Australia/Sydney"
         # --- VPN PROVIDER CONFIGURATION ---
         - name: OPENVPN_PROVIDER
           value: "PIA" # e.g., PIA, NORDVPN, MULLVAD, SURFSHARK
