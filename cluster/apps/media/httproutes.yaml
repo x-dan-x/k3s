@@ -5,7 +5,7 @@ metadata:
   namespace: media
 spec:
   parentRefs:
-  - name: internal-gateway
+  - name: lan-gateway
     namespace: kube-system
   hostnames:
   - "sab.dtxlan.net"
@@ -25,7 +25,7 @@ metadata:
   namespace: media
 spec:
   parentRefs:
-  - name: internal-gateway
+  - name: lan-gateway
     namespace: kube-system
   hostnames:
   - "txvpn.dtxlan.net"
