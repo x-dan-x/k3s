@@ -47,6 +47,13 @@ spec:
         ports:
         - containerPort: 8080
           name: sabnzbd-ui
+      volumes:
+      - name: config-storage
+        persistentVolumeClaim:
+          claimName: sabnzbd-config-pvc
+      - name: nfs-storage
+        persistentVolumeClaim:
+          claimName: nfs-all-media-pvc          
 ---
 apiVersion: v1
 kind: Service
