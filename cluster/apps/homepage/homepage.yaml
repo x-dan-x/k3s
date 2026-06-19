@@ -74,10 +74,11 @@ spec:
           - sh
           - -c
           - |
-            # If the volume is blank, or if you update Git and want to force-sync changes,
-            # we copy the Git configurations over to the writeable Longhorn volume.
-            echo "Checking configuration state..."
+            echo "Populating Git configuration to Longhorn..."
             cp -r /tmp/git-config/* /app/config/
+            
+            # --- FORCE PERMISSIONS SO THE CONTAINER CAN WRITE LOGS ---
+            chmod -R 777 /app/config
             echo "Configuration sync complete."
         volumeMounts:
         - name: git-raw-config
