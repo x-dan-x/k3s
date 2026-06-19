@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: newt-tunnel
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://charts.fossorial.io'
+    chart: newt
+    targetRevision: 1.12.5 # Latest stable chart tracking Newt
+    helm:
+      values: |
+        newtInstances:
+          - name: external-tunnel
+            enabled: true
+            auth:
+              # Tells the chart to look for the decrypted secret name
+              existingSecretName: "newt-auth" 
+            configPersistence:
+              type: emptyDir
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
+            hostNetwork: true
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
