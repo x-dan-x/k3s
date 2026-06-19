@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sabnzbd-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn # Keeps SABnzbd's history database snappy on fast local disk
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sabnzbd
+  namespace: media
+  labels:
+    app: sabnzbd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sabnzbd
+  template:
+    metadata:
+      labels:
+        app: sabnzbd
+    spec:
+      containers:
+      - name: sabnzbd
+        image: lscr.io/linuxserver/sabnzbd:latest
+        env:
+        - name: PUID
+          value: "1000" # dan
+        - name: PGID
+          value: "100"  # users
+        - name: TZ
+          value: "UTC"
+        volumeMounts:
+        - name: config-storage
+          mountPath: /config
+        - name: nfs-storage
+          mountPath: /data
+          subPath: downloads/sabnzbd # Isolates SABnzbd downloads inside /export/all/downloads/sabnzbd
+        ports:
+        - containerPort: 8080
+          name: sabnzbd-ui
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sabnzbd-service
+  namespace: media
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: sabnzbd

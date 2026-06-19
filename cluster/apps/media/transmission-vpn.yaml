@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: transmission-config-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn # Fast block storage for Transmission's resume/torrent states
+  resources:
+    requests:
+      storage: 4Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transmission-vpn
+  namespace: media
+  labels:
+    app: transmission-vpn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transmission-vpn
+  template:
+    metadata:
+      labels:
+        app: transmission-vpn
+    spec:
+      containers:
+      - name: transmission-vpn
+        image: haugene/transmission-openvpn:latest
+        securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN # Required to open the local /dev/net/tun device
+        env:
+        - name: PUID
+          value: "1000" # Maps to your 'dan' user on OMV
+        - name: PGID
+          value: "100"  # Maps to the 'users' group on OMV
+        - name: TZ
+          value: "UTC"
+        # --- VPN PROVIDER CONFIGURATION ---
+        - name: VPN_SERVICE_PROVIDER
+          value: "PIA" # e.g., PIA, NORDVPN, MULLVAD, SURFSHARK
+        - name: VPN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: transmission-vpn-creds
+              key: username
+        - name: VPN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: transmission-vpn-creds
+              key: password
+        # Adjusting the network boundaries so you can still access the UI locally
+        - name: LOCAL_NETWORK
+          value: "192.168.10.0/24,10.42.0.0/16" 
+        volumeMounts:
+        - name: config-storage
+          mountPath: /config
+        - name: nfs-storage
+          mountPath: /data
+          subPath: downloads/transmission # Isolates transmission files inside /export/all/downloads/transmission
+        ports:
+        - containerPort: 9091
+          name: transmission-ui
+      volumes:
+      - name: config-storage
+        persistentVolumeClaim:
+          claimName: transmission-config-pvc
+      - name: nfs-storage
+        persistentVolumeClaim:
+          claimName: nfs-all-media-pvc # The master NFS link
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission-service
+  namespace: media
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 9091
+    protocol: TCP
+  selector:
+    app: transmission-vpn

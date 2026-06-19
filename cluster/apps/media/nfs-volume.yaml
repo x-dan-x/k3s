@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-all-media-pv
+spec:
+  capacity:
+    storage: 100Ti # Arbitrary ceiling representation
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-omv-all
+  mountOptions:
+    - vers=4.2         # Force modern stateful connection (fallback to 4.1 if needed)
+    - noatime          # Disables writing access times on files (massive I/O saver)
+    - nodiratime       # Disables writing access times on directories
+    - rsize=131072     # Match your excellent 128k read window
+    - wsize=131072     # Match your excellent 128k write window
+    - async            # Prevents I/O blocking during massive extractions
+    - hard             # Ensures the mount waits if OMV blips, rather than crashing the pod
+    - timeo=600
+    - retrans=2  
+  nfs:
+    path: /export/all
+    server: 192.168.10.120
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-all-media-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-omv-all
+  resources:
+    requests:
+      storage: 100Ti
