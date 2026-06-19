@@ -7,9 +7,18 @@ data:
   services.yaml: |
     - Cluster Management:
         - Argo CD:
-            icon: argocd
-            href: https://argo.dtxlan.net
-            description: GitOps Deployment Engine
+            icon: "argo-cd"
+            href: "https://argo.dtxlan.net"
+            description: "GitOps Deployment Engine"
+        - Longhorn:
+            icon: "longhorn"
+            href: "https://longhorn.dtxlan.net"
+            description: "Node storage management"
+    - Networking:
+        - AdGuard Home:
+            icon: "adguard-home"
+            href: "https://adguard.dtxlan.net"
+            description: "DNS manager"
   settings.yaml: |
     title: dtxlan.net Home
     base: https://homepage.dtxlan.net
