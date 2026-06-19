@@ -34,12 +34,6 @@ spec:
     - path:
         type: PathPrefix
         value: /
-    filters:
-    - type: URLRewrite
-      urlRewrite:
-        path:
-          type: ReplacePrefixMatch
-          replacePrefixMatch: /transmission/web/
     backendRefs:
     - name: transmission-vpn-service
       port: 80 # <-- Matches the 80/TCP port from your kubectl output
