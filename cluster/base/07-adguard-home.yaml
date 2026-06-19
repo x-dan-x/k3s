@@ -90,6 +90,7 @@ spec:
     namespace: kube-system
   hostnames:
   - "adguard.dtx.lan"
+  - "adguard.dtxlan.net"
   rules:
   - backendRefs:
     - name: adguard-home
