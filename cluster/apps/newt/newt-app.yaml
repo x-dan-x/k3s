@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://charts.fossorial.io'
     chart: newt
-    targetRevision: 1.12.5 # Latest stable chart tracking Newt
+    targetRevision: 1.5.0 # Latest stable chart tracking Newt
     helm:
       values: |
         newtInstances:
