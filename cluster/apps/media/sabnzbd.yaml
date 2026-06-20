@@ -38,8 +38,6 @@ spec:
           value: "100"  # users
         - name: TZ
           value: "Australia/Sydney"
-        - name: HOST_WHITELIST_ENTRIES
-          value: "*"  # Or use "*" to allow any local hostname
         volumeMounts:
         - name: config-storage
           mountPath: /config

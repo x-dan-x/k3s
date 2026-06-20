@@ -41,16 +41,16 @@ spec:
         - containerPort: 80
           name: web-admin   # The actual dashboard panel port
         volumeMounts:
-        - name: data
+        - name: adguard-storage
           mountPath: /opt/adguardhome/work
-        - name: config
+          subPath: work
+        - name: adguard-storage
           mountPath: /opt/adguardhome/conf
+          subPath: conf
       volumes:
-      - name: data
+      - name: adguard-storage
         persistentVolumeClaim:
           claimName: adguard-data
-      - name: config
-        emptyDir: {} # Config file resets safely on fresh builds; or map to persistent volume
 ---
 apiVersion: v1
 kind: Service
@@ -61,6 +61,7 @@ metadata:
     app: adguard-home
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     app: adguard-home
   ports:
