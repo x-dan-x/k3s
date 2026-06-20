@@ -61,7 +61,7 @@ metadata:
     app: adguard-home
 spec:
   type: LoadBalancer
-  externalTrafficPolicy: Local
+  externalTrafficPolicy: Cluster
   selector:
     app: adguard-home
   ports:

@@ -4,7 +4,6 @@ metadata:
   name: coredns-custom
   namespace: kube-system
 data:
-  adguard.server: |
-    # Intercept all generic traffic before it hits /etc/resolv.conf
-    # and route it over to the internal adguard service
+  adguard.override: |
+    # This sits inside the main server block, overriding the default forwarder
     forward . adguard-home.kube-system.svc.cluster.local
