@@ -63,7 +63,7 @@ spec:
           mountPath: /config
         - name: nfs-storage
           mountPath: /data
-          subPath: downloads/transmission # Isolates transmission files inside /export/all/downloads/transmission
+          subPath: watch/transmission # Isolates transmission files inside /export/all/watch/transmission
         ports:
         - containerPort: 9091
           name: transmission-ui
