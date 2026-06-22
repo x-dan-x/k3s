@@ -43,7 +43,7 @@ spec:
           mountPath: /config
         - name: nfs-storage
           mountPath: /data
-          subPath: downloads/sabnzbd # Isolates SABnzbd downloads inside /export/all/downloads/sabnzbd
+          subPath: watch/sabnzbd # Isolates SABnzbd downloads inside /export/all/downloads/sabnzbd
         ports:
         - containerPort: 8080
           name: sabnzbd-ui
