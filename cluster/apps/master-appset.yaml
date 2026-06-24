@@ -21,6 +21,28 @@ spec:
         repoURL: 'https://github.com/x-dan-x/k3s.git'
         targetRevision: HEAD
         path: '{{path}}'         # Automatically points to the discovered folder
+        # ─── GLOBAL KUSTOMIZE INJECTION FOR ALL GENERATED APPS ───
+        kustomize:
+          patches:
+            - target:
+                kind: Deployment
+              patch: |-
+                - op: replace
+                  path: /spec/strategy
+                  value:
+                    type: Recreate
+            - target:
+                kind: Deployment
+              patch: |-
+                - op: add
+                  path: /spec/revisionHistoryLimit
+                  value: 5
+            - target:
+                kind: StatefulSet
+              patch: |-
+                - op: add
+                  path: /spec/revisionHistoryLimit
+                  value: 5
       destination:
         server: 'https://kubernetes.default.svc'
         # Automatically deploys to a namespace matching the folder name
