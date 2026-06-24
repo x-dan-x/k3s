@@ -1,0 +1,61 @@
+# cluster/apps/arrs/bazarr.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bazarr-config-pvc
+  namespace: arrs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+  namespace: arrs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bazarr
+  template:
+    metadata:
+      labels:
+        app: bazarr
+    spec:
+      containers:
+        - name: bazarr
+          image: lscr.io/linuxserver/bazarr # Tag is overridden by kustomization.yaml
+          ports:
+            - containerPort: 6767
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: nfs-storage
+              mountPath: /data
+              # Not using the subpath as bazarr need to see /export/all for atomic moves
+              # subPath: media/movies # Maps straight to /export/all/media/movies on your OMV NAS
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: bazarr-config-pvc
+        - name: nfs-storage 
+          persistentVolumeClaim:
+            claimName: nfs-all-media-pvc 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bazarr-service
+  namespace: arrs
+spec:
+  selector:
+    app: bazarr
+  ports:
+    - port: 80
+      targetPort: 6767

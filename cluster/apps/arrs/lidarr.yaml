@@ -1,0 +1,61 @@
+# cluster/apps/arrs/lidarr.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lidarr-config-pvc
+  namespace: arrs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lidarr
+  namespace: arrs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lidarr
+  template:
+    metadata:
+      labels:
+        app: lidarr
+    spec:
+      containers:
+        - name: lidarr
+          image: lscr.io/linuxserver/lidarr # Tag is overridden by kustomization.yaml
+          ports:
+            - containerPort: 8686
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: nfs-storage
+              mountPath: /data
+              # Not using the subpath as lidarr need to see /export/all for atomic moves
+              # subPath: media/movies # Maps straight to /export/all/media/movies on your OMV NAS
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: lidarr-config-pvc
+        - name: nfs-storage 
+          persistentVolumeClaim:
+            claimName: nfs-all-media-pvc 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidarr-service
+  namespace: arrs
+spec:
+  selector:
+    app: lidarr
+  ports:
+    - port: 80
+      targetPort: 8686

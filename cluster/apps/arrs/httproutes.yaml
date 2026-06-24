@@ -1,0 +1,57 @@
+# cluster/apps/arrs/httproutes.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: arrs-routes
+  namespace: arrs
+spec:
+  parentRefs:
+    - name: lan-gateway
+      namespace: kube-system
+  hostnames:
+    - "radarr.dtxlan.net"
+    - "sonarr.dtxlan.net"
+    - "lidarr.dtxlan.net"
+    - "bazarr.dtxlan.net"
+    - "prowlarr.dtxlan.net"
+  rules:
+    # ─── RADARR ROUTE ───
+    - matches:
+        - headers:
+            - name: ":authority"
+              value: "radarr.dtxlan.net"
+      backendRefs:
+        - name: radarr-service
+          port: 80
+    # ─── SONARR ROUTE ───
+    - matches:
+        - headers:
+            - name: ":authority"
+              value: "sonarr.dtxlan.net"
+      backendRefs:
+        - name: sonarr-service
+          port: 80
+    # ─── LIDARR ROUTE ───
+    - matches:
+        - headers:
+            - name: ":authority"
+              value: "lidarr.dtxlan.net"
+      backendRefs:
+        - name: lidarr-service
+          port: 80
+    # ─── BAZARR ROUTE ───
+    - matches:
+        - headers:
+            - name: ":authority"
+              value: "bazarr.dtxlan.net"
+      backendRefs:
+        - name: bazarr-service
+          port: 80
+    # ─── PROWLARR ROUTE ───
+    - matches:
+        - headers:
+            - name: ":authority"
+              value: "prowlarr.dtxlan.net"
+      backendRefs:
+        - name: prowlarr-service
+          port: 80

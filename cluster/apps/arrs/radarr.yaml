@@ -1,0 +1,61 @@
+# cluster/apps/arrs/radarr.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radarr-config-pvc
+  namespace: arrs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: arrs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      containers:
+        - name: radarr
+          image: lscr.io/linuxserver/radarr # Tag is overridden by kustomization.yaml
+          ports:
+            - containerPort: 7878
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: nfs-storage
+              mountPath: /data
+              # Not using the subpath as radarr need to see /export/all for atomic moves
+              # subPath: media/movies # Maps straight to /export/all/media/movies on your OMV NAS
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr-config-pvc
+        - name: nfs-storage 
+          persistentVolumeClaim:
+            claimName: nfs-all-media-pvc 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr-service
+  namespace: arrs
+spec:
+  selector:
+    app: radarr
+  ports:
+    - port: 80
+      targetPort: 7878

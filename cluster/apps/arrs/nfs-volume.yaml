@@ -1,0 +1,13 @@
+# cluster/apps/arrs/nfs-volume.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-all-media-pvc # Keep the name identical to your downloaders config for consistency
+  namespace: arrs        # ◄── Bound to the arrs namespace
+spec:
+  accessModes:
+    - ReadWriteMany      # ◄── Allows multiple pods across the cluster to read/write simultaneously
+  storageClassName: nfs-omv-all
+  resources:
+    requests:
+      storage: 100Ti

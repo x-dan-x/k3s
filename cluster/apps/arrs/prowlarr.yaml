@@ -1,0 +1,54 @@
+# cluster/apps/arrs/prowlarr.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prowlarr-config-pvc
+  namespace: arrs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+  namespace: arrs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      containers:
+        - name: prowlarr
+          image: lscr.io/linuxserver/prowlarr # Tag is overridden by kustomization.yaml
+          ports:
+            - containerPort: 9696
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr-config-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr-service
+  namespace: arrs
+spec:
+  selector:
+    app: prowlarr
+  ports:
+    - port: 80
+      targetPort: 9696

@@ -1,0 +1,61 @@
+# cluster/apps/arrs/sonarr.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr-config-pvc
+  namespace: arrs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: arrs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      containers:
+        - name: sonarr
+          image: lscr.io/linuxserver/sonarr # Tag is overridden by kustomization.yaml
+          ports:
+            - containerPort: 8989
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: nfs-storage
+              mountPath: /data
+              # Not using the subpath as sonarr need to see /export/all for atomic moves
+              # subPath: media/movies # Maps straight to /export/all/media/movies on your OMV NAS
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr-config-pvc
+        - name: nfs-storage 
+          persistentVolumeClaim:
+            claimName: nfs-all-media-pvc 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-service
+  namespace: arrs
+spec:
+  selector:
+    app: sonarr
+  ports:
+    - port: 80
+      targetPort: 8989

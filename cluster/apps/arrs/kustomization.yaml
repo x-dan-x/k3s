@@ -1,0 +1,31 @@
+# cluster/apps/arrs/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - httproutes.yaml
+  - nfs-volume.yaml
+  - radarr.yaml
+  - sonarr.yaml
+  - lidarr.yaml
+  - bazarr.yaml
+  - prowlarr.yaml
+
+# THE VERSION REGISTRY FOR THIS DOMAIN
+images:
+  - name: lscr.io/linuxserver/radarr
+    newTag: 6.2.1
+  - name: lscr.io/linuxserver/sonarr
+    newTag: 4.0.17
+  - name: lscr.io/linuxserver/lidarr
+    newTag: 3.1.0
+  - name: lscr.io/linuxserver/bazarr
+    newTag: 1.5.6
+  - name: lscr.io/linuxserver/prowlarr
+    newTag: 2.4.0
+
+# AUTOMATICALLY INJECT COMMON ENVS TO ALL DEPLOYMENTS HERE
+patches:
+  - path: common-env-patch.yaml
+    target:
+      kind: Deployment
