@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: prowlarr
-          image: lscr.io/linuxserver/prowlarr # Tag is overridden by kustomization.yaml
+          image: lscr.io/linuxserver/prowlarr 
           ports:
             - containerPort: 9696
               name: http

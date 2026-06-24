@@ -18,7 +18,7 @@ spec:
     # ─── RADARR ROUTE ───
     - matches:
         - headers:
-            - name: ":authority"
+            - name: "Host"
               value: "radarr.dtxlan.net"
       backendRefs:
         - name: radarr-service
@@ -26,7 +26,7 @@ spec:
     # ─── SONARR ROUTE ───
     - matches:
         - headers:
-            - name: ":authority"
+            - name: "Host"
               value: "sonarr.dtxlan.net"
       backendRefs:
         - name: sonarr-service
@@ -34,7 +34,7 @@ spec:
     # ─── LIDARR ROUTE ───
     - matches:
         - headers:
-            - name: ":authority"
+            - name: "Host"
               value: "lidarr.dtxlan.net"
       backendRefs:
         - name: lidarr-service
@@ -42,7 +42,7 @@ spec:
     # ─── BAZARR ROUTE ───
     - matches:
         - headers:
-            - name: ":authority"
+            - name: "Host"
               value: "bazarr.dtxlan.net"
       backendRefs:
         - name: bazarr-service
@@ -50,7 +50,7 @@ spec:
     # ─── PROWLARR ROUTE ───
     - matches:
         - headers:
-            - name: ":authority"
+            - name: "Host"
               value: "prowlarr.dtxlan.net"
       backendRefs:
         - name: prowlarr-service

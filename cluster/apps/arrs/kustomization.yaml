@@ -5,7 +5,6 @@ kind: Kustomization
 resources:
   - httproutes.yaml
   - nfs-volume.yaml
-  - common-env-patch.yaml
   - radarr.yaml
   - sonarr.yaml
   - lidarr.yaml
@@ -27,6 +26,16 @@ images:
 
 # AUTOMATICALLY INJECT COMMON ENVS TO ALL DEPLOYMENTS HERE
 patches:
-  - path: common-env-patch.yaml
-    target:
+  - target:
       kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env
+        value:
+          - name: PUID
+            value: "1000"
+          - name: PGID
+            value: "100"
+          - name: TZ
+            value: "Australia/Sydney"
+
