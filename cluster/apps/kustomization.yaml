@@ -5,11 +5,16 @@ kind: Kustomization
 # Register the homepage folder as a resource managed by this master list
 resources:
   - ./homepage
+  - ./media
 
 # THE MASTER VERSION REGISTRY
 images:
   - name: ghcr.io/gethomepage/homepage
     newTag: v1.13.2 # ◄── Put the version you want running here
+  - name: lscr.io/linuxserver/sabnzbd
+    newTag: 5.0.4
+  - name: haugene/transmission-openvpn
+    newTag: 5.4.0
 
 # Global policy injection
 patches:

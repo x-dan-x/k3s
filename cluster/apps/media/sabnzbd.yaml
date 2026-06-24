@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: sabnzbd
-        image: lscr.io/linuxserver/sabnzbd:latest
+        image: lscr.io/linuxserver/sabnzbd
         env:
         - name: PUID
           value: "1000" # dan
