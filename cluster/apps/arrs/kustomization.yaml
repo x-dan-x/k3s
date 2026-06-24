@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - httproutes.yaml
   - nfs-volume.yaml
+  - nfs-pv.yaml
   - radarr.yaml
   - sonarr.yaml
   - lidarr.yaml
