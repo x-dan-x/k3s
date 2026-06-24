@@ -15,7 +15,6 @@
       --write-kubeconfig-mode=644
       --node-ip={{ ansible_host }}
       --tls-san={{ ansible_host }}
-      --kube-controller-manager-arg=deployment-history-limit=5
 
   tasks:
     - name: Check if k3s is already installed
