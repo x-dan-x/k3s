@@ -4,5 +4,5 @@ kind: Kustomization
 
 # Tell Kustomize which raw files belong to this app
 resources:
-  - deployment.yaml
-  - service.yaml # Include ingress.yaml or configmap.yaml here too if you have them
+  - homepage.yaml
+  - 01-homepage-route.yaml # Include ingress.yaml or configmap.yaml here too if you have them
