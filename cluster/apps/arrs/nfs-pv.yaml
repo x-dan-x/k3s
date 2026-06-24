@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-omv-all-pv-arrs  # Unique name for this PV object
+spec:
+  capacity:
+    storage: 100Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-omv-all # This matches the storageClassName in your PVC
+  nfs:
+    server: 192.168.10.120  # ◄── Put your OMV NAS IP here
+    path: /export/all       # ◄── Put your OMV NFS share path here
