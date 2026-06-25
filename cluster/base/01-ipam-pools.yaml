@@ -32,4 +32,4 @@ spec:
       stop: "192.168.10.18"
   serviceSelector:
     matchLabels:
-      app.kubernetes.io/name: "plex-stream" # <--- Target label for your Plex service
+      app: "plex" # <--- Matches the label in cluster/apps/plex/plex.yaml
