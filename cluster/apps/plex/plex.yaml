@@ -90,6 +90,8 @@ metadata:
   name: plex-service
   labels:
     app: plex # ◄── Triggers Cilium IPPool match once your 01-ipam file is updated
+  annotations:
+    io.cilium/lb-ipam-ips: 192.168.10.18
 spec:
   type: LoadBalancer
   ports:
