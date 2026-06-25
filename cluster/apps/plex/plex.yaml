@@ -11,13 +11,35 @@ spec:
       storage: 40Gi
 ---
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-omv-all-pv-plex # ◄── Unique name for this global PV handle
+spec:
+  capacity:
+    storage: 100Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-omv-all-plex # ◄── Unique matching string just for Plex
+  mountOptions:
+    - nfsvers=4.1
+    - noatime
+    - rsize=1048576
+    - wsize=1048576
+    - async
+  nfs:
+    server: 192.168.10.120 # ◄── Your OMV IP
+    path: /export/all    # ◄── Your OMV Path
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: plex-nfs-media-pvc
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-omv-all
+  storageClassName: nfs-omv-all-plex # ◄── Explicitly matches the new PV tag above
   resources:
     requests:
       storage: 100Ti
