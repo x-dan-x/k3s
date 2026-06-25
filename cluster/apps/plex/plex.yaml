@@ -25,6 +25,11 @@ spec:
   mountOptions:
     - noatime
     - async
+    - rsize=262144
+    - wsize=262144
+    - hard
+    - timeo=600
+    - retrans=2
   nfs:
     server: 192.168.10.120 # ◄── Your OMV IP
     path: /export/all    # ◄── Your OMV Path
