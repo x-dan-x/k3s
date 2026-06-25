@@ -62,6 +62,12 @@ spec:
       containers:
         - name: plex
           image: lscr.io/linuxserver/plex
+          env:
+          - name: PLEX_CLAIM
+            valueFrom:
+              secretKeyRef:
+                name: plex-claim-secret
+                key: PLEX_CLAIM
           ports:
             - containerPort: 32400
               name: pms
