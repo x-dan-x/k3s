@@ -31,6 +31,9 @@ spec:
         - name: devplugindir
           mountPath: /var/lib/kubelet/device-plugins
           mountPropagation: Bidirectional
+        # ─── ADD THIS VOLUME MOUNT ───
+        - name: cdidir
+          mountPath: /var/run/cdi
       volumes:
       - name: devfs
         hostPath:
@@ -40,5 +43,9 @@ spec:
           path: /sys/class/drm
       - name: devplugindir
         hostPath:
-          # ─── UPDATED TO STANDARD KUBERNETES PATH ───
           path: /var/lib/kubelet/device-plugins
+      # ─── ADD THIS HOST VOLUME ───
+      - name: cdidir
+        hostPath:
+          path: /var/run/cdi
+          type: DirectoryOrCreate

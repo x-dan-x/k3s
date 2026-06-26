@@ -64,6 +64,8 @@ spec:
       labels:
         app: plex
     spec:
+      nodeSelector:
+        gpu.intel.com/i915: "true"
       containers:
         - name: plex
           image: lscr.io/linuxserver/plex
