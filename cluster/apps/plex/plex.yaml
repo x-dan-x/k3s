@@ -63,6 +63,10 @@ spec:
     metadata:
       labels:
         app: plex
+  securityContext:
+    supplementalGroups:
+      - 44   # Passes the host 'video' group membership
+      - 991  # Passes the host 'render' group membership    
     spec:
       nodeSelector:
         gpu.intel.com/i915: "true"
@@ -83,6 +87,8 @@ spec:
               mountPath: /config
             - name: media
               mountPath: /data
+            - name: ram-transcode
+              mountPath: /transcode
           resources:
             requests:
               cpu: 200m
@@ -97,6 +103,9 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: plex-nfs-media-pvc
+        - name: ram-transcode
+          emptyDir:
+            medium: Memory
 ---
 apiVersion: v1
 kind: Service
