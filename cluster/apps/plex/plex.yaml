@@ -73,11 +73,11 @@ spec:
       containers:
         - name: plex
           image: lscr.io/linuxserver/plex
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 100
+            runAsNonRoot: true
           env:
-          - name: PUID
-            value: "1000"  # ◄── This forces the container to act as the owner
-          - name: PGID
-            value: "100"   # ◄── This matches the users group ID
           - name: TZ
             value: "Australia/Sydney"
           - name: PLEX_CLAIM
