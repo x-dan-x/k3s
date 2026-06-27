@@ -74,6 +74,12 @@ spec:
         - name: plex
           image: lscr.io/linuxserver/plex
           env:
+          - name: PUID
+            value: "1000"  # ◄── This forces the container to act as the owner
+          - name: PGID
+            value: "100"   # ◄── This matches the users group ID
+          - name: TZ
+            value: "Australia/Sydney"
           - name: PLEX_CLAIM
             valueFrom:
               secretKeyRef:
