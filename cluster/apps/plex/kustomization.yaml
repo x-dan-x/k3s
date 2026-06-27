@@ -5,4 +5,4 @@ resources:
   - plex-claim-sealedsecret.yaml
 images:
   - name: plexinc/pms-docker
-    newTag: 1.43.2
+    newTag: plexpass
