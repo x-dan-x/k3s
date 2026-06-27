@@ -63,11 +63,11 @@ spec:
     metadata:
       labels:
         app: plex
-  securityContext:
-    supplementalGroups:
-      - 44   # Passes the host 'video' group membership
-      - 991  # Passes the host 'render' group membership    
     spec:
+      securityContext:
+        supplementalGroups:
+          - 44   # Passes the host 'video' group membership
+          - 991  # Passes the host 'render' group membership    
       nodeSelector:
         gpu.intel.com/i915: "true"
       containers:
