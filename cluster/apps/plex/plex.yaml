@@ -72,7 +72,7 @@ spec:
         gpu.intel.com/i915: "true"
       containers:
         - name: plex
-          image: lscr.io/linuxserver/plex
+          image: plexinc/pms-docker
           securityContext:
             runAsUser: 1000
             runAsGroup: 100
