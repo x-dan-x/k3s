@@ -18,6 +18,45 @@ data:
             icon: "longhorn"
             href: "https://longhorn.dtxlan.net"
             description: "Node storage management"
+    - Apps:
+        - Plex:
+            icon: "plex"
+            href: "https://plex.dtxlan.net"
+            description: "Plex Media Server"
+        - Seerr:
+            icon: "seerr"
+            href: "https://seerr.dtxlan.net"
+            description: "Request Management"
+        - Tautulli:
+            icon: "tautulli"
+            href: "https://tautulli.dtxlan.net"
+            description: "Plex Stats"
+    - Arrs:
+        - Radarr:
+            icon: "radarr"
+            href: "https://radarr.dtxlan.net"
+            description: "Movie Management"
+        - Sonarr:
+            icon: "sonarr"
+            href: "https://sonarr.dtxlan.net"
+            description: "TV Series Management"
+        - Lidarr:
+            icon: "lidarr"
+            href: "https://lidarr.dtxlan.net"
+            description: "Music Management"
+        - Bazarr:
+            icon: "bazarr"
+            href: "https://bazarr.dtxlan.net"
+            description: "Subtitle Management"
+    - Downloaders:
+        - SABnzbd:
+            icon: "sabnzbd"
+            href: "https://sabnzbd.dtxlan.net"
+            description: "NZB Downloader"
+        - Transmission-vpn:
+            icon: "transmission-vpn"
+            href: "https://txvpn.dtxlan.net"
+            description: "Torrent Downloader"
     - Networking:
         - AdGuard Home:
             icon: "adguard-home"
@@ -31,7 +70,9 @@ data:
             icon: "pangolin"
             href: "https://pangolin.johnsonland.net"
             description: "VPS management"
-  # Empty placeholders so the v1.x engine doesn't crash on missing files
+
+          
+            # Empty placeholders so the v1.x engine doesn't crash on missing files
   bookmarks.yaml: |
     []
   widgets.yaml: |
