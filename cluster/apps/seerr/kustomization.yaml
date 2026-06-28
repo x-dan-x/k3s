@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - seerr.yaml
+
+helmCharts:
+  - name: seerr-chart
+    repo: oci://ghcr.io/seerr-team/seerr
+    version: 3.7.0 # Explicitly pins the chart version
+    releaseName: seerr
+    namespace: seerr # Explicitly forces the pre-rendered manifests into the correct namespace boundary
+    valuesInline:
+      image:
+        repository: ghcr.io/seerr-team/seerr
+        tag: latest
+        pullPolicy: IfNotPresent
+
+      timezone: "Australia/Sydney"
+
+      # Binds the Helm application directly to the Longhorn PVC we built in seerr.yaml
+      persistence:
+        config:
+          enabled: true
+          existingClaim: "seerr-config-pvc"
+          mountPath: /app/config
+
+      # Deploys a native ClusterIP network mapping on port 80
+      service:
+        type: ClusterIP
+        port: 80
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
