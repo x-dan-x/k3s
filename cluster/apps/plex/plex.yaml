@@ -72,7 +72,7 @@ spec:
         gpu.intel.com/i915: "true"
       containers:
         - name: plex
-          image: plexinc/pms-docker
+          image: lscr.io/linuxserver/plex
           env:
           - name: TZ
             value: "Australia/Sydney"
@@ -81,10 +81,10 @@ spec:
               secretKeyRef:
                 name: plex-claim-secret
                 key: PLEX_CLAIM
-          - name: PLEX_UID
+          - name: PUID
             value: 1000
-          - name: PLEX_GID
-            value: 1000
+          - name: PGID
+            value: 100
           ports:
             - containerPort: 32400
               name: pms
