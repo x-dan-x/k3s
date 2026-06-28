@@ -85,9 +85,9 @@ spec:
                 name: plex-claim-secret
                 key: PLEX_CLAIM
           - name: PUID
-            value: 1000
+            value: "1000"
           - name: PGID
-            value: 100
+            value: "100"
           ports:
             - containerPort: 32400
               name: pms
