@@ -98,12 +98,14 @@ spec:
               mountPath: /data
             - name: ram-transcode
               mountPath: /transcode
+            - name: dshm
+              mountPath: /dev/shm
           resources:
             requests:
               cpu: 200m
               memory: 512Mi
             limits:
-              memory: 4Gi
+              memory: 6Gi
               gpu.intel.com/i915: 1
       volumes:
         - name: config
@@ -115,6 +117,11 @@ spec:
         - name: ram-transcode
           emptyDir:
             medium: Memory
+            sizeLimit: 2Gi
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
 ---
 apiVersion: v1
 kind: Service
