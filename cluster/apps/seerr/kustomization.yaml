@@ -14,6 +14,10 @@ helmCharts:
       # This natively forces the Service, StatefulSet, and Pods to be named "seerr-service"
       fullnameOverride: "seerr-service"
 
+      env:
+        - name: TRUST_PROXY
+          value: "true"
+
       image:
         repository: ghcr.io/seerr-team/seerr
         tag: latest
