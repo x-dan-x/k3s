@@ -30,3 +30,55 @@ spec:
     backendRefs:
     - name: "tautulli-service"
       port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tautulli
+  namespace: tautulli # Adjust if you use a generic media/plex namespace
+  labels:
+    app: tautulli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tautulli
+  template:
+    metadata:
+      labels:
+        app: tautulli
+    spec:
+      containers:
+        - name: tautulli
+          image: ghcr.io/tautulli/tautulli:latest
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000" # Match your cluster storage UID
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/New_York" # Adjust your timezone
+          ports:
+            - name: http
+              containerPort: 8181
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: tautulli-config-pvc # Ensure this matches your PVC name
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tautulli-service
+  namespace: tautulli
+spec:
+  ports:
+    - port: 80
+      targetPort: 8181
+  selector:
+    app: tautulli
