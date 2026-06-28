@@ -11,6 +11,7 @@ helmCharts:
     releaseName: seerr
     namespace: seerr # Explicitly forces the pre-rendered manifests into the correct namespace boundary
     valuesInline:
+      fullnameOverride: "seerr"
       image:
         repository: ghcr.io/seerr-team/seerr
         tag: latest
@@ -29,6 +30,7 @@ helmCharts:
       service:
         type: ClusterIP
         port: 80
+        name: "seerr-service"
 
       resources:
         requests:
