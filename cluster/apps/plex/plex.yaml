@@ -73,10 +73,6 @@ spec:
       containers:
         - name: plex
           image: plexinc/pms-docker
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 100
-            runAsNonRoot: true
           env:
           - name: TZ
             value: "Australia/Sydney"
@@ -85,6 +81,10 @@ spec:
               secretKeyRef:
                 name: plex-claim-secret
                 key: PLEX_CLAIM
+          - name: PLEX_UID
+            value: 1000
+          - name: PLEX_GID
+            value: 1000
           ports:
             - containerPort: 32400
               name: pms
