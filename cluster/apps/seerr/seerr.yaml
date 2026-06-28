@@ -22,6 +22,7 @@ spec:
     namespace: kube-system
   hostnames:
   - "requests.dtxlan.net"
+  - "seerr.dtxlan.net"
   rules:
   - matches:
     - path:
