@@ -85,6 +85,10 @@
           --set ipam.mode=kubernetes \
           --set bpf.masquerade=true \
           --set bpf.hostRouting=true \
+          --set loadBalancer.mode=dsr \
+          --set loadBalancer.dsrDispatch=geneve \
+          --set routingMode=tunnel \
+          --set tunnelProtocol=geneve \
           --set installNoConntrackIptablesRules=false \
           --set mtu=1450 \
           --set vlan.mtu=1450
