@@ -17,7 +17,7 @@ images:
   - name: lscr.io/linuxserver/radarr
     newTag: 6.2.1
   - name: lscr.io/linuxserver/sonarr
-    newTag: 4.0.17
+    newTag: 4.0.19
   - name: lscr.io/linuxserver/lidarr
     newTag: 3.1.0
   - name: lscr.io/linuxserver/bazarr
