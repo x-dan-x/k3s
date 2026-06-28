@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tautulli-config-pvc
+  namespace: tautulli
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 4Gi # Tautulli databases are small, 4Gi is plenty
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tautulli-route
+  namespace: tautulli
+spec:
+  parentRefs:
+  - name: lan-gateway
+    namespace: kube-system
+  hostnames:
+  - "tautulli.dtxlan.net"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: "tautulli-service"
+      port: 80
