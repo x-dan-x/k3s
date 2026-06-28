@@ -73,6 +73,10 @@ spec:
       containers:
         - name: plex
           image: plexinc/pms-docker
+          securityContext:
+            runAsUser: 1000       # Forces the container engine to boot as 1000
+            runAsGroup: 1000      # Forces the container engine to boot as 1000
+            runAsNonRoot: true
           env:
           - name: TZ
             value: "Australia/Sydney"
