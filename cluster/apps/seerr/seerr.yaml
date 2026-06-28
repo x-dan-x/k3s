@@ -28,5 +28,5 @@ spec:
         type: PathPrefix
         value: /
     backendRefs:
-      - name: "seerr-service"
+    - name: "seerr-service"
       port: 80 # The official Helm chart exposes the service on port 80 by default
