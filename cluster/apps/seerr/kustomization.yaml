@@ -11,7 +11,9 @@ helmCharts:
     releaseName: seerr
     namespace: seerr 
     valuesInline:
-      fullnameOverride: "seerr"
+      # This natively forces the Service, StatefulSet, and Pods to be named "seerr-service"
+      fullnameOverride: "seerr-service"
+
       image:
         repository: ghcr.io/seerr-team/seerr
         tag: latest
@@ -28,7 +30,6 @@ helmCharts:
       service:
         type: ClusterIP
         port: 80
-        # ◄── Removed the unsupported service name property from here
 
       resources:
         requests:
@@ -36,13 +37,3 @@ helmCharts:
           memory: 256Mi
         limits:
           memory: 1Gi
-
-# ─── FIX: MOVEd OUTSIDE OF HELMCHARTS BLOCKS (TOP-LEVEL DIRECTIVE) ───
-patches:
-  - target:
-      kind: Service
-      name: seerr
-    patch: |-
-      - op: replace
-        path: /metadata/name
-        value: seerr-service
