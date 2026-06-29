@@ -41,7 +41,7 @@ newrelic-pixie:
 
 pixie-chart:
   # pixie-chart.enabled -- Install the [`pixie-chart` chart](https://docs.pixielabs.ai/installing-pixie/install-schemes/helm/#3.-deploy)
-  enabled: true
+  enabled: false
 
 newrelic-infra-operator:
   # newrelic-infra-operator.enabled -- Install the [`newrelic-infra-operator` chart](https://github.com/newrelic/newrelic-infra-operator/tree/main/charts/newrelic-infra-operator) (Beta)
