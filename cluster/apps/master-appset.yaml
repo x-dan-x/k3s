@@ -27,7 +27,7 @@ spec:
             - target:
                 kind: Deployment
               patch: |-
-                - op: replace
+                - op: add
                   path: /spec/strategy
                   value:
                     type: Recreate
