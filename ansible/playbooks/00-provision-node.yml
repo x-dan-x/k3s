@@ -47,6 +47,7 @@
           - cryptsetup
           - xfsprogs
           - ethtool
+          - qemu-guest-agent
         state: present
 
     - name: Configure Vim to disable mouse mode
