@@ -7,7 +7,7 @@ resources:
 helmCharts:
   - name: nri-bundle
     repo: https://helm-charts.newrelic.com
-    version: 5.x.x # Locks down major version updates
+    version: 7.0.23 # Locks down major version updates
     releaseName: newrelic
     namespace: newrelic
     valuesFile: values.yaml
