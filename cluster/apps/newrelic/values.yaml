@@ -70,6 +70,7 @@ newrelic-k8s-metrics-adapter:
 # See [user's guide of the common library](https://github.com/newrelic/helm-charts/blob/master/library/common-library/README.md) for further information.
 # @default -- See [`values.yaml`](values.yaml)
 global:
+  region: US
   # -- The cluster name for the Kubernetes cluster.
   cluster: k3s
 
