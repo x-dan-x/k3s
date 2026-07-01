@@ -54,7 +54,19 @@ newrelic-prometheus-agent:
 nr-ebpf-agent:
   # nr-ebpf-agent.enabled -- Install the [`nr-ebpf-agent`](https://github.com/newrelic/helm-charts/tree/master/charts/nr-ebpf-agent)
   enabled: true
-  
+  config:
+    env:
+      - name: PL_STIRLING_BPF_CORE_POLICY
+        value: "Always"
+    volumes:
+      - name: sys-kernel-btf
+        hostPath:
+          path: /sys/kernel/btf
+          type: Directory
+    volumeMounts:
+      - name: sys-kernel-btf
+        mountPath: /sys/kernel/btf
+        readOnly: true 
   
 
 k8s-agents-operator:
@@ -187,17 +199,4 @@ global:
   #             PORT: 6379
   #           labels:
   #             env: test
-nr-ebpf-agent:
-  env:
-    - name: PL_STIRLING_BPF_CORE_POLICY
-      value: "Always"
-  volumes:
-    - name: sys-kernel-btf
-      hostPath:
-        path: /sys/kernel/btf
-        type: Directory
-  volumeMounts:
-    - name: sys-kernel-btf
-      mountPath: /sys/kernel/btf
-      readOnly: true
 
