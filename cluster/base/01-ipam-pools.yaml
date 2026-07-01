@@ -1,6 +1,30 @@
 apiVersion: cilium.io/v2
 kind: CiliumLoadBalancerIPPool
 metadata:
+  name: control-plane-ip-pool
+spec:
+  blocks:
+    - start: "192.168.10.17"
+      stop: "192.168.10.17"
+  serviceSelector:
+    matchLabels:
+      io.kubernetes.service.name: k3s-vip-service
+---
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: plex-dedicated-pool
+spec:
+  blocks:
+    - start: "192.168.10.18" # <--- Or whichever dedicated streaming IP you want
+      stop: "192.168.10.18"
+  serviceSelector:
+    matchLabels:
+      app: "plex" # <--- Matches the label in cluster/apps/plex/plex.yaml
+---
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
   name: lan-dns-pool
 spec:
   blocks:
@@ -21,15 +45,3 @@ spec:
   serviceSelector:
     matchLabels:
       cilium.io/ingress: "true" # Cilium auto-labels its generated Ingress services with this
----
-apiVersion: cilium.io/v2
-kind: CiliumLoadBalancerIPPool
-metadata:
-  name: plex-dedicated-pool
-spec:
-  blocks:
-    - start: "192.168.10.18" # <--- Or whichever dedicated streaming IP you want
-      stop: "192.168.10.18"
-  serviceSelector:
-    matchLabels:
-      app: "plex" # <--- Matches the label in cluster/apps/plex/plex.yaml
