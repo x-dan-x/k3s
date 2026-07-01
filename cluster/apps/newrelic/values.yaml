@@ -67,7 +67,8 @@ nr-ebpf-agent:
       - name: sys-kernel-btf
         mountPath: /sys/kernel/btf
         readOnly: true 
-  
+    otel:
+      endpoint: "otlp.nr-data.net:443" 
 
 k8s-agents-operator:
   # k8s-agents-operator.enabled -- Install the [`k8s-agents-operator` chart](https://github.com/newrelic/k8s-agents-operator/tree/main/charts/k8s-agents-operator)
