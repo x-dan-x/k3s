@@ -28,8 +28,8 @@ helmCharts:
       persistence:
         config:
           enabled: true
-          existingClaim: "seerr-config-pvc"
           mountPath: /app/config
+          size: 5Gi
 
       service:
         type: ClusterIP
