@@ -187,4 +187,17 @@ global:
   #             PORT: 6379
   #           labels:
   #             env: test
+nr-ebpf-agent:
+  env:
+    - name: PL_STIRLING_BPF_CORE_POLICY
+      value: "Always"
+  volumes:
+    - name: sys-kernel-btf
+      hostPath:
+        path: /sys/kernel/btf
+        type: Directory
+  volumeMounts:
+    - name: sys-kernel-btf
+      mountPath: /sys/kernel/btf
+      readOnly: true
 
