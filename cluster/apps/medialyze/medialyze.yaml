@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: medialyze-config-pvc
+  namespace: medialyze
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: medialyze-route
+  namespace: medialyze
+spec:
+  parentRefs:
+  - name: lan-gateway
+    namespace: kube-system
+  hostnames:
+  - "medialyze.dtxlan.net"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: "medialyze-service"
+      port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medialyze
+  namespace: medialyze
+  labels:
+    app: medialyze
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medialyze
+  template:
+    metadata:
+      labels:
+        app: medialyze
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/frederikemmer/medialyze:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: nfs-omv-all
+              mountPath: /media
+              readOnly: true
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: medialyze-config-pvc
+        - name: nfs-omv-all
+          nfs:
+            server: 192.168.10.120
+            path: /export/all
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medialyze-service
+  namespace: medialyze
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: medialyze
