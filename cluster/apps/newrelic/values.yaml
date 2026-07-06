@@ -72,7 +72,7 @@ newrelic-k8s-metrics-adapter:
 global:
   # -- The cluster name for the Kubernetes cluster.
   cluster: k3s
-
+  nrRegion: "US"
   # -- The license key for your New Relic Account. This will be preferred configuration option if both `licenseKey` and `customSecret` are specified.
   licenseKey: ""
   # -- The license key for your New Relic Account. This will be preferred configuration option if both `insightsKey` and `customSecret` are specified.
