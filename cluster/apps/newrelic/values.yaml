@@ -24,7 +24,9 @@ nri-kube-events:
 newrelic-logging:
   # newrelic-logging.enabled -- Install the [`newrelic-logging` chart](https://github.com/newrelic/helm-charts/tree/master/charts/newrelic-logging)
   enabled: true
-  # fluentBit:
+  fluentBit:
+    output:
+      bufferSize: "128k"
     # -- What path will be mounted to read logs from the node
     # linuxMountPath: /var
     # persistence:
