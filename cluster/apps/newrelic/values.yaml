@@ -33,9 +33,9 @@ newrelic-logging:
   resources:
     limits:
       cpu: 500m
-      memory: 256Ki
+      memory: 256Mi
     requests:
-      cpu: 100m
+      cpu: 250m
       memory: 128Mi
 
     # -- What path will be mounted to read logs from the node
