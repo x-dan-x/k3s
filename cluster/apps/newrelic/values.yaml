@@ -82,6 +82,7 @@ global:
   customSecretName: "newrelic-license-secret"
   # -- Key in the Secret object where the license key is stored
   customSecretLicenseKey: "licenseKey"
+  customSecretKey: "licenseKey"
 
   # -- The provider that's running your cluster
   provider: 
