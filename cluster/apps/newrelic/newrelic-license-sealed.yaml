@@ -1,0 +1,15 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: newrelic-license-secret
+  namespace: newrelic
+spec:
+  encryptedData:
+    licenseKey: AgADPLToIwcJDEuOsfCxVpMVlVLRvNvtutq1yUvKYoY+xWfxVa7TmlyhkmHrZQ6FTGdtP6XLW+fB8pXHoGZ7Lpwagjs0aFMV2a/SfKMPjNfaz3Djn0AN4evoNnP62Vc/G4aTYB3GgsA0b3hMMsiGtQcKt/L4e33we2o7yL4qyxGI3aXVAD8WBK8W9xkQ83M2ciGbIK1qyWGJua1uv9obqnCImWfVhHIu/K71yJ0LSIeWKVDduJZSWwg+H/+riStHYkoSPIHPpXvOVFLupDz97oe+1rkdMat7z81tjlhSZrdh5IHZjOsE9OOZnoT326pU/MMSDtvHMiVBPDZp9tcl1CGyhEdhuAITKi+krKiOAHVW0skGyQ2YRsjpJWSSv+o7+BVKGYtZEMv05W8pY2N3TNnb8vieTfEj14PWOvgA/wFey/SMYoQcjzXAR1bF0l2tO/nuXjtZ8Wf8d0waKv9w8k9up/q6iYpLrw/HrbJ3AR2YmJU3GKg00aFt3/qzqMnSMNvxOoTLZUcVWx9FC7Aeq9RjzU7yqFEpS/qk4o77ZGySKZKyxiGXQIZunw3qP9SyBjDgKyyTAryZKbN4H59H6ycmZAKhGaFz61OiVny5k/lZJ2CbAmnniMgVhzCBuBl11l1XGDPJHlCjjYdObBJroDeOIdVTukq6TVrqpPq7m3a3MUkkNUwZ+QQN20OC44xkMTV1HW8vlddbUGG92nslVhHCLrR7hTG66cKf/wGBTQKSMXR4a4Mdpn+z
+  template:
+    metadata:
+      creationTimestamp: null
+      name: newrelic-license-secret
+      namespace: newrelic
