@@ -25,9 +25,7 @@ newrelic-logging:
   # newrelic-logging.enabled -- Install the [`newrelic-logging` chart](https://github.com/newrelic/helm-charts/tree/master/charts/newrelic-logging)
   enabled: true
   fluentBit:
-    output:
-      kubernetesFilter:
-        bufferSize: "128k"
+    k8sBufferSize: "128k"
     # -- What path will be mounted to read logs from the node
     # linuxMountPath: /var
     # persistence:
