@@ -26,7 +26,8 @@ newrelic-logging:
   enabled: true
   fluentBit:
     output:
-      bufferSize: "128k"
+      kubernetesFilter:
+        bufferSize: "128k"
     # -- What path will be mounted to read logs from the node
     # linuxMountPath: /var
     # persistence:
