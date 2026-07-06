@@ -1,6 +1,7 @@
 newrelic-infrastructure:
   # newrelic-infrastructure.enabled -- Install the [`newrelic-infrastructure` chart](https://github.com/newrelic/nri-kubernetes/tree/main/charts/newrelic-infrastructure)
   enabled: true
+  privileged: true
 
 nri-prometheus:
   # nri-prometheus.enabled -- Install the [`nri-prometheus` chart](https://github.com/newrelic/nri-prometheus/tree/main/charts/nri-prometheus)
@@ -24,8 +25,10 @@ nri-kube-events:
 newrelic-logging:
   # newrelic-logging.enabled -- Install the [`newrelic-logging` chart](https://github.com/newrelic/helm-charts/tree/master/charts/newrelic-logging)
   enabled: true
+  privileged: true
   fluentBit:
     k8sBufferSize: "128k"
+  endpoint: "https://log-api.newrelic.com/log/v1"
     # -- What path will be mounted to read logs from the node
     # linuxMountPath: /var
     # persistence:
