@@ -21,7 +21,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: nfs-omv-all-plex # ◄── Unique matching string just for Plex
+  storageClassName: nfs-omv-all # ◄── Unique matching string just for Plex
   mountOptions:
     - noatime
     - async
@@ -37,11 +37,11 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: plex-nfs-media-pvc
+  name: nfs-all-media-pvc
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: nfs-omv-all-plex # ◄── Explicitly matches the new PV tag above
+  storageClassName: nfs-omv-all # ◄── Explicitly matches the new PV tag above
   resources:
     requests:
       storage: 100Ti
@@ -113,7 +113,7 @@ spec:
             claimName: plex-config-pvc
         - name: media
           persistentVolumeClaim:
-            claimName: plex-nfs-media-pvc
+            claimName: nfs-all-media-pvc
         - name: ram-transcode
           emptyDir:
             medium: Memory
