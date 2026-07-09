@@ -68,9 +68,9 @@ spec:
         app: plex
     spec:
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 100
-        runAsNonRoot: true
+#        runAsUser: 1000
+#        runAsGroup: 100
+#        runAsNonRoot: true
         supplementalGroups:
           - 44   # Passes the host 'video' group membership
           - 991  # Passes the host 'render' group membership    
