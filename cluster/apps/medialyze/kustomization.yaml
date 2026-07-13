@@ -6,4 +6,4 @@ resources:
 
 images:
   - name: ghcr.io/frederikemmer/medialyze
-    newTag: 0.16.2
+    newTag: 0.16.3
