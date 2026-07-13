@@ -50,7 +50,7 @@ spec:
     spec:
       containers:
         - name: app
-#          image: ghcr.io/frederikemmer/medialyze:latest
+          image: ghcr.io/frederikemmer/medialyze
           imagePullPolicy: Always
           ports:
             - name: http
