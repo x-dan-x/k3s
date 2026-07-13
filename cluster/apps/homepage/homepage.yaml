@@ -31,6 +31,10 @@ data:
             icon: "tautulli"
             href: "https://tautulli.dtxlan.net"
             description: "Plex Stats"
+        - MediaLyze:
+            icon: "medialyze"
+            href: "https://medialyze.dtxlan.net"
+            description: "Media Stats"
     - Arrs:
         - Radarr:
             icon: "radarr"
