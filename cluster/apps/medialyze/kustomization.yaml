@@ -3,3 +3,7 @@ kind: Kustomization
 
 resources:
   - medialyze.yaml
+
+images:
+  - name: ghcr.io/frederikemmer/medialyze
+    newTag: 0.16.2
