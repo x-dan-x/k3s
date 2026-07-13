@@ -62,7 +62,7 @@ newrelic-prometheus-agent:
 
 nr-ebpf-agent:
   # nr-ebpf-agent.enabled -- Install the [`nr-ebpf-agent`](https://github.com/newrelic/helm-charts/tree/master/charts/nr-ebpf-agent)
-  enabled: true
+  enabled: false
   
   
 
