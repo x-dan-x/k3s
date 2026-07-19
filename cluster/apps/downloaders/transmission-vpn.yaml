@@ -58,6 +58,14 @@ spec:
         # Adjusting the network boundaries so you can still access the UI locally
         - name: LOCAL_NETWORK
           value: "192.168.10.0/24,10.42.0.0/16" 
+        - name: TRANSMISSION_DOWNLOAD_DIR
+          value: "/data/complete"      # ◄── Change this to your preferred path
+        - name: TRANSMISSION_INCOMPLETE_DIR
+          value: "/data/incomplete"    # ◄── Change this to your preferred path
+        - name: TRANSMISSION_INCOMPLETE_DIR_ENABLED
+          value: "true"                # ◄── Keeps temporary files separate
+        - name: TRANSMISSION_WATCH_DIR
+          value: "/data/watch"         # ◄── Optional: If you use a blackhole/watch folder
         volumeMounts:
         - name: config-storage
           mountPath: /config
