@@ -31,6 +31,9 @@ spec:
       containers:
         - name: timescale
           image: timescale/timescaledb:latest-pg15
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           envFrom:
             - secretRef:
                 name: tracearr-db-secret
@@ -89,4 +92,3 @@ spec:
       targetPort: 6379
   selector:
     app: tracearr-redis
-
