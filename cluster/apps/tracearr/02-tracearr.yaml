@@ -55,6 +55,11 @@ spec:
                 secretKeyRef:
                   name: tracearr-db-secret
                   key: JWT_SECRET
+            - name: COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tracearr-db-secret
+                  key: COOKIE_SECRET
             - name: DATABASE_URL
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@tracearr-db:5432/$(POSTGRES_DB)"
           ports:
