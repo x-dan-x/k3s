@@ -19,7 +19,7 @@ helmCharts:
           value: "true"
 
       image:
-        repository: ghcr.io/seerr-team/seerr
+        repository: seerr-team/seerr
         tag: latest
         pullPolicy: IfNotPresent
 
