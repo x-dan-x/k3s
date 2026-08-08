@@ -5,11 +5,20 @@ metadata:
   namespace: argocd
 spec:
   parentRefs:
-  - name: lan-gateway
-    namespace: kube-system
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: lan-gateway
+      namespace: kube-system
   hostnames:
-  - "argo.dtxlan.net"
+    - "argo.dtxlan.net"
   rules:
-  - backendRefs:
-    - name: argocd-server
-      port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: argocd-server
+          port: 80
+          weight: 1
