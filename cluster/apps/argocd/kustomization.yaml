@@ -1,19 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Keep this to default local items
 namespace: argocd
 
-# Force Server-Side Apply to prevent annotation size errors on CRDs
 commonAnnotations:
   argocd.argoproj.io/sync-options: ServerSideApply=true
 
 resources:
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.6/manifests/install.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.0/manifests/install.yaml
   - 01-argocd-route.yaml
 
 patches:
-  # 1. Fix the insecure setting in the right configmap
   - target:
       kind: ConfigMap
       name: argocd-cmd-params-cm
