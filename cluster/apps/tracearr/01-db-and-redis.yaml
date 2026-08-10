@@ -43,10 +43,15 @@ spec:
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/postgresql/data
+            - name: dshm
+              mountPath: /dev/shm
       volumes:
         - name: db-data
           persistentVolumeClaim:
             claimName: tracearr-db-pvc
+        - name: dshm
+          emptyDir:
+            medium: Memory
 ---
 # TimescaleDB Service
 apiVersion: v1
