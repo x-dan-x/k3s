@@ -11,4 +11,4 @@ resources:
 # Pin app version via Kustomize image override
 images:
   - name: ghcr.io/connorgallopo/tracearr
-    newTag: v2.0.1
+    newTag: "2.0.1"
