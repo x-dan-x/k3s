@@ -30,8 +30,8 @@ spec:
     - rsize=262144
     - wsize=262144
     - hard
-    - timeo=600
-    - retrans=2
+    - timeo=50
+    - retrans=3
   nfs:
     server: 192.168.10.120 # ◄── Your OMV IP
     path: /export/all    # ◄── Your OMV Path
@@ -94,6 +94,22 @@ spec:
           ports:
             - containerPort: 32400
               name: pms
+          livenessProbe:
+            httpGet:
+              path: /identity
+              port: 32400
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 5  # Restarts pod if Plex fails 5 checks in a row (~100s)
+          readinessProbe:
+            httpGet:
+              path: /identity
+              port: 32400
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           volumeMounts:
             - name: config
               mountPath: /config
@@ -105,10 +121,10 @@ spec:
               mountPath: /dev/shm
           resources:
             requests:
-              cpu: 200m
-              memory: 512Mi
+              cpu: 500m
+              memory: 1Gi
             limits:
-              memory: 6Gi
+              memory: 8Gi
               gpu.intel.com/i915: 1
       volumes:
         - name: config
@@ -120,7 +136,7 @@ spec:
         - name: ram-transcode
           emptyDir:
             medium: Memory
-            sizeLimit: 2Gi
+            sizeLimit: 8Gi
         - name: dshm
           emptyDir:
             medium: Memory
