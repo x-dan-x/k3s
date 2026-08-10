@@ -7,3 +7,8 @@ resources:
   - sealed-secret.yaml
   - 01-db-and-redis.yaml
   - 02-tracearr.yaml
+
+# Pin app version via Kustomize image override
+images:
+  - name: ghcr.io/connorgallopo/tracearr
+    newTag: v2.0.1
