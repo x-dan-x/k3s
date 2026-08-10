@@ -122,6 +122,30 @@
         regexp: '^([^#].*swap.*)$'
         replace: '# \1'
 
+    - name: Flush existing multipath device maps before stopping daemon
+      ansible.builtin.command: multipath -F
+      failed_when: false
+      changed_when: false
+
+    - name: Stop and disable multipathd service and socket
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - multipathd.service
+        - multipathd.socket
+      failed_when: false
+
+    - name: Mask multipathd service and socket to prevent auto-activation
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        masked: true
+      loop:
+        - multipathd.service
+        - multipathd.socket
+      failed_when: false
+  
     - name: Create Longhorn backup mount directory
       file:
         path: /mnt/backups
