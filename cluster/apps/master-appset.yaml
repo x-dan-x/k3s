@@ -27,20 +27,20 @@ spec:
             - target:
                 kind: Deployment
               patch: |-
-                - op: add
+                - op: replace 
                   path: /spec/strategy
                   value:
                     type: Recreate
             - target:
                 kind: Deployment
               patch: |-
-                - op: add
+                - op: replace
                   path: /spec/revisionHistoryLimit
                   value: 5
             - target:
                 kind: StatefulSet
               patch: |-
-                - op: add
+                - op: replace
                   path: /spec/revisionHistoryLimit
                   value: 5
       destination:
