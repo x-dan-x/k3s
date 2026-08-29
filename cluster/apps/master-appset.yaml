@@ -24,7 +24,7 @@ spec:
             - target:
                 kind: Deployment
               patch: |-
-                - op: add
+                - op: replace
                   path: /spec/strategy
                   value:
                     type: Recreate
@@ -42,12 +42,11 @@ spec:
                   value: 5
       destination:
         server: 'https://kubernetes.default.svc'
-        # Temp setting - Go template condition: if the app is 'newt', target kube-system; otherwise target folder name
-        namespace: '{{ if eq .path.basename "newt" }}kube-system{{ else }}{{ .path.basename }}{{ end }}'
-        #        namespace: '{{path.basename}}'
+        namespace: '{{path.basename}}'
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          - RespectIgnoreDifferences=true
