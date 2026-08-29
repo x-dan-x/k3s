@@ -10,7 +10,8 @@ spec:
         revision: HEAD
         directories:
           - path: cluster/apps/*
-          - path: 'cluster/apps/!newt'
+          - path: cluster/apps/newt
+            exclude: true
   template:
     metadata:
       name: 'app-{{path.basename}}'
