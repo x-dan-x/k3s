@@ -42,7 +42,9 @@ spec:
                   value: 5
       destination:
         server: 'https://kubernetes.default.svc'
-        namespace: '{{path.basename}}'
+        # Temp setting - Go template condition: if the app is 'newt', target kube-system; otherwise target folder name
+        namespace: '{{ if eq .path.basename "newt" }}kube-system{{ else }}{{ .path.basename }}{{ end }}'
+        #        namespace: '{{path.basename}}'
       syncPolicy:
         automated:
           prune: true
