@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: newt-tunnel
+  namespace: kube-system
+spec:
+  project: default
+  source:
+    repoURL: 'https://charts.fossorial.io'
+    chart: newt
+    targetRevision: 1.5.0
+    helm:
+      values: |
+        newtInstances:
+          - name: external-tunnel
+            enabled: true
+            auth:
+              existingSecretName: "newt-auth"
+            configPersistence:
+              type: emptyDir
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
+            hostNetwork: true
+            extraVolumes:
+              - name: config-dir
+                emptyDir: {}
+            extraVolumeMounts:
+              - name: config-dir
+                mountPath: /.config
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
