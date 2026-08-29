@@ -24,13 +24,9 @@ spec:
             - target:
                 kind: Deployment
               patch: |-
-                apiVersion: apps/v1
-                kind: Deployment
-                metadata:
-                  name: not-used
-                spec:
-                  strategy:
-                    $patch: replace
+                - op: add
+                  path: /spec/strategy
+                  value:
                     type: Recreate
             - target:
                 kind: Deployment

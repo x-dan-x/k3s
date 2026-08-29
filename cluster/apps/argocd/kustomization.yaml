@@ -27,3 +27,14 @@ patches:
         path: /data
         value:
           kustomize.buildOptions: "--enable-helm"
+  - target:
+      kind: Deployment
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: all-deployments
+      spec:
+        strategy:
+          type: Recreate
+          rollingUpdate: null
