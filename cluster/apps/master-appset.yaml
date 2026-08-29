@@ -5,31 +5,32 @@ metadata:
   namespace: argocd
 spec:
   generators:
-    # The Git generator crawls your repo looking for directories
     - git:
         repoURL: 'https://github.com/x-dan-x/k3s.git'
         revision: HEAD
         directories:
-          - path: cluster/apps/* # Watches every folder inside cluster/apps/
+          - path: cluster/apps/*
   template:
     metadata:
-      # Automatically names the app after the folder (e.g., cluster-apps-adguard)
       name: 'app-{{path.basename}}'
     spec:
       project: default
       source:
         repoURL: 'https://github.com/x-dan-x/k3s.git'
         targetRevision: HEAD
-        path: '{{path}}'         # Automatically points to the discovered folder
-        # ─── GLOBAL KUSTOMIZE INJECTION FOR ALL GENERATED APPS ───
+        path: '{{path}}'
         kustomize:
           patches:
             - target:
                 kind: Deployment
               patch: |-
-                - op: replace 
-                  path: /spec/strategy
-                  value:
+                apiVersion: apps/v1
+                kind: Deployment
+                metadata:
+                  name: not-used
+                spec:
+                  strategy:
+                    $patch: replace
                     type: Recreate
             - target:
                 kind: Deployment
@@ -45,11 +46,10 @@ spec:
                   value: 5
       destination:
         server: 'https://kubernetes.default.svc'
-        # Automatically deploys to a namespace matching the folder name
-        namespace: '{{path.basename}}' 
+        namespace: '{{path.basename}}'
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
-          - CreateNamespace=true  # Creates the namespace if it doesn't exist yet
+          - CreateNamespace=true
