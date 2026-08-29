@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: newt-tunnel
-  namespace: kube-system
+  namespace: argocd
 spec:
   project: default
   source:
