@@ -72,7 +72,7 @@ spec:
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@tracearr-db:5432/$(POSTGRES_DB)"
           volumeMounts:
             - name: app-data
-              mountPath: /app/data
+              mountPath: /data
       volumes:
         - name: app-data
           persistentVolumeClaim:
