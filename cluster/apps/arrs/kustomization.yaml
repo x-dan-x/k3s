@@ -15,15 +15,15 @@ resources:
 # THE VERSION REGISTRY FOR THIS DOMAIN
 images:
   - name: lscr.io/linuxserver/radarr
-    newTag: 6.3.0
+    newTag: 6.4.4
   - name: lscr.io/linuxserver/sonarr
-    newTag: 4.0.19
+    newTag: 4.0.20
   - name: lscr.io/linuxserver/lidarr
     newTag: 3.1.0
   - name: lscr.io/linuxserver/bazarr
-    newTag: 1.5.6
+    newTag: 1.6.2
   - name: lscr.io/linuxserver/prowlarr
-    newTag: 2.4.0
+    newTag: 2.6.5
 
 # AUTOMATICALLY INJECT COMMON ENVS TO ALL DEPLOYMENTS HERE
 patches:
