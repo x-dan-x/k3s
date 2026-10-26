@@ -12,4 +12,4 @@ images:
   - name: lscr.io/linuxserver/sabnzbd
     newTag: "5.1.3"
   - name: haugene/transmission-openvpn
-    newTag: "4.1.4" 
+    newTag: "5.5.2" 
