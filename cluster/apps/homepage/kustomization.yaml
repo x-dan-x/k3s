@@ -8,4 +8,4 @@ resources:
   - 01-homepage-route.yaml # Include ingress.yaml or configmap.yaml here too if you have them
 images:
   - name: ghcr.io/gethomepage/homepage
-    newTag: 2.7.0
+    newTag: "v2.7.0"
