@@ -20,7 +20,7 @@ helmCharts:
 
       image:
         repository: seerr-team/seerr
-        tag: latest
+        tag: 3.5.1
         pullPolicy: IfNotPresent
 
       timezone: "Australia/Sydney"
