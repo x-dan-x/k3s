@@ -21,7 +21,7 @@ data:
     - Apps:
         - Plex:
             icon: "plex"
-            href: "https://plex.dtxlan.net"
+            href: "https://plex.dtxlan.net:32400"
             description: "Plex Media Server"
         - Seerr:
             icon: "seerr"
@@ -35,6 +35,10 @@ data:
             icon: "medialyze"
             href: "https://medialyze.dtxlan.net"
             description: "Media Stats"
+        - Tracearr: 
+            icon: "tracearr"
+            href: "https://tracearr.dtxlan.net"
+            description: "Plex Usage Stats"
     - Arrs:
         - Radarr:
             icon: "radarr"
