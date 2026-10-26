@@ -59,7 +59,7 @@ data:
     - Downloaders:
         - SABnzbd:
             icon: "sabnzbd"
-            href: "https://sabnzbd.dtxlan.net"
+            href: "https://sab.dtxlan.net"
             description: "NZB Downloader"
         - Transmission-vpn:
             icon: "transmission-vpn"
