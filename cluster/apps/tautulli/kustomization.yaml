@@ -3,4 +3,7 @@ kind: Kustomization
 
 resources:
   - tautulli.yaml
-  # - pvc.yaml (Include your PVC definitions here if managed in this folder)
+
+images:
+  - name: ghcr.io/tautulli/tautulli # or lscr.io/linuxserver/tautulli
+    newTag: v2.18.2

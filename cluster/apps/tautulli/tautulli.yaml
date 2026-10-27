@@ -50,7 +50,7 @@ spec:
     spec:
       containers:
         - name: tautulli
-          image: ghcr.io/tautulli/tautulli:latest
+          image: ghcr.io/tautulli/tautulli
           imagePullPolicy: Always
           env:
             - name: PUID
