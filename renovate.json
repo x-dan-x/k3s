@@ -5,11 +5,12 @@
   ],
   "packageRules": [
     {
+      "description": "Allow loose versioning for LinuxServer images without suffix locking",
       "matchPackagePrefixes": [
         "lscr.io/linuxserver/",
         "ghcr.io/linuxserver/"
       ],
-      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?(?:-ls(?<revision>\\d+))?$"
+      "versioning": "loose"
     }
   ]
 }
