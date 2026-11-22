@@ -23,7 +23,7 @@ images:
   - name: lscr.io/linuxserver/bazarr
     newTag: 1.6.2
   - name: lscr.io/linuxserver/prowlarr
-    newTag: 2.7.0
+    newTag: 3.0.2
 
 # AUTOMATICALLY INJECT COMMON ENVS TO ALL DEPLOYMENTS HERE
 patches:
